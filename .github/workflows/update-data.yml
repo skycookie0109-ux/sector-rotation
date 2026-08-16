@@ -22,7 +22,9 @@ jobs:
           python-version: "3.12"
 
       - name: 安裝相依套件
-        run: pip install -r requirements.txt
+        # requirements.txt 刻意放在 scripts/ 而不是根目錄：
+        # 放根目錄會讓 Vercel 把這個專案誤判成 Python 應用，去找 app.py 然後建置失敗
+        run: pip install -r scripts/requirements.txt
 
       - name: 抓取全市場快照
         run: python scripts/fetch.py

@@ -18,8 +18,10 @@
 需求：Windows + Python 3.10 以上。
 
 ```
-pip install -r requirements.txt
+pip install -r scripts/requirements.txt
 ```
+
+> `requirements.txt` 刻意放在 `scripts/` 而不是根目錄。放根目錄的話，Vercel 的框架自動偵測會把這個專案當成 Python 應用，去找 `app.py` 之類的入口點然後建置失敗——但這其實是純靜態網站，Python 只在本機和 GitHub Actions 產生 JSON。
 
 然後雙擊：
 
