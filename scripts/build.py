@@ -313,8 +313,14 @@ def _rolling_norm(xs: list[float], w: int) -> list[float | None]:
     return out
 
 
-def rrg(sector: list[float], bench: list[float], w: int = 60):
-    """JdK RS-Ratio / RS-Momentum。回傳最新一組座標與軌跡。"""
+def rrg(sector: list[float], bench: list[float], w: int = 60,
+        dates: list[str] | None = None, sample: int = 5, max_points: int = 130):
+    """JdK RS-Ratio / RS-Momentum。
+
+    回傳最新座標、近期軌跡（tail），以及給時間軸動畫用的完整路徑（path）。
+    path 每 5 個交易日取一點（約每週一點），最多 130 點約等於兩年半，
+    這樣 32 個類股的座標加起來還在幾十 KB，手機載入不會有感。
+    """
     if len(sector) < w + 15 or len(bench) < w + 15:
         return None
     rs = [100 * s / b for s, b in zip(sector, bench) if b]
@@ -323,6 +329,7 @@ def rrg(sector: list[float], bench: list[float], w: int = 60):
     if len(valid) < 15:
         return None
 
+    idxs = [i for i, _ in valid]
     vals = [v for _, v in valid]
     lag = max(1, w // 6)
     mom = [100 * vals[i] / vals[i - lag] if i >= lag and vals[i - lag] else None
@@ -341,7 +348,18 @@ def rrg(sector: list[float], bench: list[float], w: int = 60):
         tail.extend((round(vals[offset + k], 2), round(rsm[k], 2)))
     if not tail:
         return None
-    return {"rs_ratio": tail[-2], "rs_momentum": tail[-1], "tail": tail}
+
+    # 時間軸動畫用的完整路徑。抽樣後才截斷，讓保留的區間盡量長。
+    full = [(idxs[offset + k], round(vals[offset + k], 2), round(rsm[k], 2))
+            for k in range(len(rsm)) if rsm[k] is not None]
+    picked = full[::sample][-max_points:]
+    path: list[float] = []
+    for _, x, y in picked:
+        path.extend((x, y))
+    path_dates = ([dates[i] for i, _, _ in picked] if dates else [])
+
+    return {"rs_ratio": tail[-2], "rs_momentum": tail[-1], "tail": tail,
+            "path": path, "path_dates": path_dates}
 
 
 def quadrant(x: float, y: float) -> str:
@@ -477,13 +495,14 @@ def aggregate(stocks: dict[str, dict], index_hist, chips) -> dict[str, dict]:
         # 位置對齊會讓整條序列錯位，算出來的相對強度就整個是錯的。
         rrg_data = None
         if idx_name and bench_by_date:
-            sec_s, ben_s = [], []
+            sec_s, ben_s, day_s = [], [], []
             for day, close in index_hist[idx_name]:
                 b = bench_by_date.get(day)
                 if b:
                     sec_s.append(close)
                     ben_s.append(b)
-            rrg_data = rrg(sec_s, ben_s, w=60)
+                    day_s.append(day)
+            rrg_data = rrg(sec_s, ben_s, w=60, dates=day_s)
             if rrg_data:
                 raw["rs_ratio"] = rrg_data["rs_ratio"]
                 raw["rs_momentum"] = rrg_data["rs_momentum"]
@@ -500,6 +519,9 @@ def aggregate(stocks: dict[str, dict], index_hist, chips) -> dict[str, dict]:
             "members_otc": n_otc,
             # 季報只有上市有；上櫃在兩邊 OpenAPI 都沒有開放端點
             "quarterly_from": n_twse,
+            # 產業規模，時間軸圖用來決定圓圈大小。用月營收加總而不是市值：
+            # 上櫃拿不到完整市值，但月營收兩邊都有，跨市場才一致。
+            "scale": round(rev / 1e6, 1) if rev else None,
             "raw": raw,
             "rrg": rrg_data,
             "weak_quarterly": weak,
@@ -690,6 +712,7 @@ def main() -> None:
             "members": s["members"],
             "members_twse": s["members_twse"],
             "members_otc": s["members_otc"],
+            "scale": s["scale"],
             "weak_quarterly": s["weak_quarterly"],
             "raw": s["raw"],
             "rrg": rrg_data,

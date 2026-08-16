@@ -194,12 +194,13 @@ def main() -> None:
         series = prices.get(name, [])
         rrg_data = None
         if series:
-            sec_s, ben_s = [], []
+            sec_s, ben_s, day_s = [], [], []
             for day, close in series:
                 if day in bench:
                     sec_s.append(close)
                     ben_s.append(bench[day])
-            rrg_data = rrg(sec_s, ben_s, w=60)
+                    day_s.append(day)
+            rrg_data = rrg(sec_s, ben_s, w=60, dates=day_s)
             if rrg_data:
                 raw["rs_ratio"] = rrg_data["rs_ratio"]
                 raw["rs_momentum"] = rrg_data["rs_momentum"]
@@ -208,6 +209,8 @@ def main() -> None:
 
         sectors[name] = {
             "industry": name, "etf": etf, "members": b.get("n", 0),
+            # 產業規模，時間軸圖的圓圈大小。單位換成十億美元。
+            "scale": round(b["rev"] / 1e9, 1) if b.get("rev") else None,
             "raw": raw, "rrg": rrg_data,
         }
 
@@ -260,7 +263,7 @@ def main() -> None:
         payload["sectors"].append({
             "industry": name, "etf": s["etf"], "members": s["members"],
             "members_twse": s["members"], "members_otc": 0,
-            "weak_quarterly": False,
+            "scale": s["scale"], "weak_quarterly": False,
             "raw": s["raw"], "rrg": r,
             "quadrant": quadrant(r["rs_ratio"], r["rs_momentum"]) if r else None,
             "scores": {h: {**s["horizons"][h],

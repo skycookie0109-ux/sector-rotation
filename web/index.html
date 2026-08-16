@@ -5,16 +5,33 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>台股類股輪動｜基本面為主的產業體質看板</title>
 <style>
+/* 亮色是預設值；深色分成「跟隨系統」與「使用者明確指定」兩條路徑，
+   後者要能蓋過系統設定，所以不能只寫在 media query 裡。 */
 :root{
   --bg:#f6f7f9; --card:#fff; --ink:#15181d; --muted:#6b7280; --line:#e4e7ec;
-  --strong:#c0392b; --weak:#1f7a4d; --flat:#8a8f98; --accent:#2b5fd9;
-  --lead:#c0392b; --improve:#2b5fd9; --weaken:#d98324; --lag:#6b7280;
+  --flat:#8a8f98; --accent:#2b5fd9;
+  --red:#c0392b; --green:#1f7a4d;
+  --improve:#2b5fd9; --weaken:#d98324; --lag:#6b7280;
 }
 @media (prefers-color-scheme:dark){
-  :root{--bg:#0f1115;--card:#171a20;--ink:#e6e8eb;--muted:#9aa1ab;--line:#272b33;
-        --strong:#ff6b5b;--weak:#4ade80;--accent:#6b93ff;
-        --lead:#ff6b5b;--improve:#6b93ff;--weaken:#f0a04b;--lag:#8a919c;}
+  :root:not([data-theme="light"]){
+    --bg:#0f1115; --card:#171a20; --ink:#e6e8eb; --muted:#9aa1ab; --line:#272b33;
+    --accent:#6b93ff; --red:#ff6b5b; --green:#4ade80;
+    --improve:#6b93ff; --weaken:#f0a04b; --lag:#8a919c;
+  }
 }
+:root[data-theme="dark"]{
+  --bg:#0f1115; --card:#171a20; --ink:#e6e8eb; --muted:#9aa1ab; --line:#272b33;
+  --accent:#6b93ff; --red:#ff6b5b; --green:#4ade80;
+  --improve:#6b93ff; --weaken:#f0a04b; --lag:#8a919c;
+}
+
+/* 漲跌配色。台股/亞洲習慣紅漲綠跌，歐美相反，兩邊使用者看到對方的配色
+   都會直覺誤讀，所以做成可切換。--up / --down 是語意變數，強弱評等與
+   RRG 的「領先」也一起跟著走，整頁的顏色邏輯才會一致。 */
+:root, :root[data-updown="rg"]{ --up:var(--red); --down:var(--green); }
+:root[data-updown="gr"]{ --up:var(--green); --down:var(--red); }
+:root{ --strong:var(--up); --weak:var(--down); --lead:var(--up); }
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);
   font:15px/1.6 "Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif}
@@ -22,6 +39,18 @@ body{margin:0;background:var(--bg);color:var(--ink);
 header h1{font-size:22px;margin:0 0 4px}
 .asof{color:var(--muted);font-size:13px}
 .asof b{color:var(--ink);font-weight:600}
+.htop{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;
+  flex-wrap:wrap}
+.prefs{display:flex;gap:7px;flex-wrap:wrap;flex:none}
+.seg{display:flex;border:1px solid var(--line);border-radius:7px;overflow:hidden;
+  background:var(--card)}
+.seg button{font:inherit;font-size:12px;padding:5px 10px;cursor:pointer;border:0;
+  background:transparent;color:var(--muted);display:flex;align-items:center;gap:4px}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:#fff}
+.seg .sw{width:8px;height:8px;border-radius:2px;display:inline-block}
+.seg .sw.r{background:var(--red)} .seg .sw.g{background:var(--green)}
+.seg button[aria-pressed="true"] .sw{outline:1px solid rgba(255,255,255,.6)}
 
 .tabs{display:flex;gap:6px;margin:22px 0 0;flex-wrap:wrap}
 .tab{padding:9px 18px;border:1px solid var(--line);background:var(--card);
@@ -35,6 +64,8 @@ header h1{font-size:22px;margin:0 0 4px}
 .lookup input{width:100%;padding:10px 13px;font:inherit;font-size:14px;
   border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink)}
 .lookup input:focus{outline:2px solid var(--accent);outline-offset:-1px;border-color:transparent}
+.lookup input{padding-right:38px}
+.lookuphelp{position:absolute;right:13px;top:13px;margin:0}
 #qres:not(:empty){margin-top:7px;border:1px solid var(--line);border-radius:8px;
   background:var(--card);overflow:hidden;max-height:290px;overflow-y:auto}
 .hit{display:grid;grid-template-columns:62px 1fr auto;gap:10px;align-items:center;
@@ -100,7 +131,27 @@ tbody tr.on{background:color-mix(in srgb,var(--accent) 14%,transparent)}
 .quad .none{font-size:12px;color:var(--muted);margin-top:7px}
 @media(max-width:700px){#quads{grid-template-columns:1fr}}
 
-#detail{margin-top:18px}
+/* 時間軸輪動圖 */
+#motion{margin-top:18px}
+.mctl{display:flex;align-items:center;gap:11px;padding:12px 15px;
+  border-bottom:1px solid var(--line)}
+.mctl button#play{width:34px;height:34px;flex:none;border-radius:50%;cursor:pointer;
+  border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:13px}
+.mctl button#play:hover{border-color:var(--accent);color:var(--accent)}
+.mctl input[type=range]{flex:1;accent-color:var(--accent);cursor:pointer;min-width:0}
+.mctl #tlabel{font-variant-numeric:tabular-nums;font-size:13px;color:var(--muted);
+  min-width:88px;text-align:right;flex:none}
+#mchart svg{display:block;width:100%;height:auto}
+.mpick{display:flex;align-items:flex-start;gap:9px;padding:11px 15px;
+  border-top:1px solid var(--line);flex-wrap:wrap}
+.mpick .lbl{font-size:12px;color:var(--muted);padding-top:3px;flex:none}
+.mpick .chips{flex:1;margin-top:0;min-width:0}
+.chip.clr{flex:none;color:var(--muted)}
+.mdot{cursor:pointer}
+@media(max-width:700px){
+  .mctl #tlabel{min-width:0}
+  .mpick{padding:10px 12px}
+}
 #detail .head{padding:14px 16px;border-bottom:1px solid var(--line)}
 #detail .head h3{margin:0 0 3px;font-size:17px}
 #detail .head p{margin:0;color:var(--muted);font-size:13px}
@@ -124,6 +175,35 @@ ul{margin:0;padding:0}
 footer{margin-top:34px;padding-top:18px;border-top:1px solid var(--line);
   color:var(--muted);font-size:12.5px}
 footer b{color:var(--ink)}
+/* 名詞說明。桌機滑鼠移上去就顯示，手機/平板點一下從底部滑出。 */
+.hlp{display:inline-flex;align-items:center;justify-content:center;width:14px;
+  height:14px;border-radius:50%;border:1px solid currentColor;font-size:9.5px;
+  line-height:1;opacity:.5;cursor:pointer;margin-left:4px;vertical-align:1px;
+  font-style:normal;font-weight:400;flex:none;-webkit-tap-highlight-color:transparent}
+.hlp:hover{opacity:1;color:var(--accent)}
+th .hlp{vertical-align:0}
+#helppop{position:absolute;z-index:50;max-width:310px;background:var(--card);
+  border:1px solid var(--line);border-radius:9px;padding:11px 13px;
+  box-shadow:0 8px 26px rgba(0,0,0,.18);font-size:13px;line-height:1.62;
+  color:var(--muted);display:none}
+#helppop.show{display:block}
+#helppop h6{margin:0 0 5px;font-size:13.5px;color:var(--ink);font-weight:700}
+#helppop b{color:var(--ink)}
+#helppop .close{display:none}
+@media(max-width:700px),(pointer:coarse){
+  #helppop{position:fixed;left:0;right:0;bottom:0;top:auto;max-width:none;
+    border-radius:14px 14px 0 0;border-bottom:0;padding:16px 18px 22px;
+    box-shadow:0 -8px 30px rgba(0,0,0,.3);font-size:14px}
+  #helppop .close{display:block;position:absolute;top:10px;right:12px;
+    width:30px;height:30px;border-radius:50%;border:1px solid var(--line);
+    background:transparent;color:var(--muted);font-size:15px;cursor:pointer;
+    line-height:1}
+  #helppop h6{font-size:15px;padding-right:34px}
+  .hlp{width:17px;height:17px;font-size:11px;opacity:.65}
+}
+#helpmask{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:49;display:none}
+@media(max-width:700px),(pointer:coarse){ #helpmask.show{display:block} }
+
 .err{padding:40px 16px;text-align:center;color:var(--muted)}
 code{background:color-mix(in srgb,var(--ink) 8%,transparent);padding:1px 5px;border-radius:3px}
 .mrank{display:none}
@@ -170,17 +250,40 @@ code{background:color-mix(in srgb,var(--ink) 8%,transparent);padding:1px 5px;bor
 </style>
 </head>
 <body>
+<div id="helpmask"></div>
+<div id="helppop" role="dialog" aria-live="polite">
+  <button class="close" type="button" aria-label="關閉">✕</button>
+  <div id="helpbody"></div>
+</div>
+
 <div class="wrap">
 <header>
-  <h1 id="title">類股輪動看板</h1>
-  <div class="asof" id="asof">載入中…</div>
+  <div class="htop">
+    <div>
+      <h1 id="title">類股輪動看板</h1>
+      <div class="asof" id="asof">載入中…</div>
+    </div>
+    <div class="prefs">
+      <div class="seg" id="themeSeg" role="group" aria-label="外觀">
+        <button type="button" data-t="auto">同步</button>
+        <button type="button" data-t="light">亮</button>
+        <button type="button" data-t="dark">暗</button>
+      </div>
+      <div class="seg" id="udSeg" role="group" aria-label="漲跌配色">
+        <button type="button" data-u="rg"><b class="sw r"></b>漲</button>
+        <button type="button" data-u="gr"><b class="sw g"></b>漲</button>
+      </div>
+    </div>
+  </div>
 </header>
 
 <div class="tabs" id="markets" style="margin-top:16px"></div>
 
 <div class="lookup">
   <input id="q" type="search" autocomplete="off"
-    placeholder="查個股屬於哪一類？輸入代號或名稱，例如 2330、台積電、NVDA">
+    placeholder="查個股屬於哪一類？台股美股一起找，例如 2330、台積電、NVDA、Tesla">
+  <i class="hlp lookuphelp" data-help="lookup" role="button" tabindex="0"
+    aria-label="搜尋說明">?</i>
   <div id="qres"></div>
 </div>
 
@@ -197,7 +300,8 @@ code{background:color-mix(in srgb,var(--ink) 8%,transparent);padding:1px 5px;bor
   </section>
 
   <section class="card">
-    <h2>相對強弱位置<span style="float:right;font-weight:400;text-transform:none">
+    <h2>相對強弱位置<i class="hlp" data-help="quadrant" role="button" tabindex="0"
+      aria-label="說明">?</i><span style="float:right;font-weight:400;text-transform:none">
       <label style="cursor:pointer;font-size:12px"><input type="checkbox" id="showScatter"
         style="vertical-align:-1px"> 散點圖</label></span></h2>
     <div id="quads"></div>
@@ -206,6 +310,25 @@ code{background:color-mix(in srgb,var(--ink) 8%,transparent);padding:1px 5px;bor
       改善 → 領先 → 轉弱 → 落後 → 改善，繞一圈。</p>
   </section>
 </div>
+
+<section class="card" id="motion">
+  <h2>輪動軌跡 — 拖時間軸看類股怎麼繞<i class="hlp" data-help="motion"
+    role="button" tabindex="0" aria-label="說明">?</i></h2>
+  <div class="mctl">
+    <button id="play" type="button" aria-label="播放">▶</button>
+    <input id="tslider" type="range" min="0" value="0" step="1" aria-label="時間軸">
+    <span id="tlabel">—</span>
+  </div>
+  <div id="mchart"></div>
+  <div class="mpick">
+    <span class="lbl">比較</span>
+    <div class="chips" id="mchips"></div>
+    <button class="chip clr" id="mclear" type="button">清除</button>
+  </div>
+  <p class="hint"><b>圓圈大小＝產業規模</b>（<span id="scaleUnit">月營收</span>）。
+    橫軸是相對大盤的強弱、縱軸是動能。不選就是全部一起看；選了之後會畫出
+    被選類股最近半年的移動軌跡，其他淡化當背景。</p>
+</section>
 
 <section class="card" id="detail" hidden></section>
 
@@ -230,6 +353,195 @@ const FMT = (v, unit='', d=1) =>
 const PLAIN = (v, unit='', d=1) =>
   v === null || v === undefined ? '<span class="na">—</span>' : v.toFixed(d)+unit;
 
+/* ---------- 名詞說明 ----------
+   每個指標都要能查到「這是什麼、怎麼算、怎麼讀、什麼時候會誤導」。
+   最後一項最重要——這頁的數字很容易被當成買賣訊號，說明要主動擋掉。 */
+const HELP = {
+  score: ['分數',
+    '這是<b>同一市場內的相對排名百分位</b>（0～100），不是絕對評分。100 分代表在這個市場的所有類股裡排第一。' +
+    '<br><br>算法：每個指標先在類股之間做標準化，依期間加權合成，最後換算成排名百分位。' +
+    '<br><br><b>要注意</b>：就算所有類股都在變差，還是會有人拿高分——它只回答「相對而言排第幾」。'],
+  verdict: ['評等',
+    '把分數切成五段：<b>強</b> 80–100（前 20%）、<b>偏強</b> 60–80、<b>中性</b> 40–60、<b>偏弱</b> 20–40、<b>弱</b> 0–20。' +
+    '<br><br><b>每一段的類股數量是固定的。</b>台股 32 個類股裡，永遠有大約 7 個是「強」、6 個是「弱」，' +
+    '不管當下大盤是多頭還空頭。這是相對排名的本質，不是市場判斷。'],
+  rank: ['排名', '在這個市場、這個期間的類股排序。台股 32 個、美股 11 個。'],
+  members: ['家數',
+    '這個類股底下的公司數量。台股顯示「上市＋上櫃」。' +
+    '<br><br>上櫃公司會計入營收、估值與家數，但<b>營益率／ROE 與籌碼面只採上市</b>——' +
+    '季報與三大法人日資料在櫃買沒有開放端點。'],
+  etf: ['代表 ETF',
+    '美股用 SPDR 的類股 ETF 當作該類股的價格代表。價格面（相對強弱、軌跡）用的是 ETF 本身，這部分精確；' +
+    '基本面則是用 SEC 的 SIC 產業代碼近似 GICS 後彙總，與 ETF 實際成分股會有出入。'],
+  coverage: ['指標覆蓋率',
+    '這個期間有多少比重的指標真的有資料。缺的部分一律以<b>同業中位數</b>代入（也就是當成中性），' +
+    '分數會因此被拉向中間。<br><br>覆蓋率低於 80% 會在類股名稱旁邊標示出來。'],
+
+  rev_yoy: ['月營收年增率',
+    '這個類股所有成分股的<b>當月營收加總</b>，跟去年同月加總相比的成長率。' +
+    '<br><br>先加總再算比率，而不是把每家的成長率平均——後者會讓一家小公司的暴衝蓋過整個產業的實況。' +
+    '<br><br>台股每月 10 日前公告上個月，是<b>更新最快的基本面資料</b>。'],
+  rev_accel: ['營收動能加速度',
+    '當月營收年增率 減去 今年累計營收年增率。' +
+    '<br><br>正值代表<b>當月表現比全年趨勢好，產業正在加速</b>；負值代表在減速。' +
+    '通常比絕對成長率更早反映轉折點。'],
+  rev_breadth: ['營收成長家數占比',
+    '這個類股裡，月營收年增率為正的公司占幾成。' +
+    '<br><br>用來檢查成長是<b>普遍現象還是單一權值股撐起來的</b>。' +
+    '例如半導體營收成長 57%，但台積電就占了該類股營收的一半以上，這時廣度就很重要。'],
+  rev_yoy_cum: ['累計營收年增率', '今年到目前為止的營收加總，跟去年同期相比。比單月數字穩定，適合看長期趨勢。'],
+
+  op_margin: ['營業利益率',
+    '營業利益 ÷ 營業收入，反映<b>本業的賺錢效率</b>。' +
+    '<br><br>資料來自季報，一季才更新一次。目前是水準值（高低），不是變化值（比去年進步多少）——' +
+    '證交所的季報沒有去年同期欄位，要靠每季累積才能補上。'],
+  net_margin: ['稅後淨利率', '稅後淨利 ÷ 營業收入。包含業外損益，所以會受一次性項目影響，看的時候要跟營業利益率對照。'],
+  roe: ['股東權益報酬率（年化）',
+    '稅後淨利 ÷ 股東權益，年化後的數字，代表<b>股東每投入一元能賺回多少</b>。' +
+    '<br><br>台股的季報是「累計至第 N 季」而不是單季，所以年化係數是 4÷N（半年報就乘 2）。' +
+    '分子分母只取同一組有完整資料的公司，避免灌水。'],
+  profit_breadth: ['獲利家數占比', '這個類股裡每股盈餘為正的公司占幾成。跟營收廣度一樣，用來看獲利是普遍的還是集中的。'],
+
+  pe: ['本益比',
+    '股價 ÷ 每股盈餘，取<b>類股內的中位數</b>（不是平均，避開極端值）。數字越低越便宜，所以在計分時是<b>反向</b>指標。' +
+    '<br><br>虧損的公司沒有本益比，會被排除在中位數之外。'],
+  pb: ['股價淨值比', '股價 ÷ 每股淨值，類股中位數。同樣是反向指標——越低代表相對便宜。'],
+  div_yield: ['現金殖利率', '每股股利 ÷ 股價，類股中位數。長期分頁會納入，短中期不會。'],
+
+  foreign_flow: ['外資買超佔股本比',
+    '外資近 20 個交易日的<b>淨買超股數 ÷ 該類股總發行股數</b>，也就是「外資這段期間買走了幾 % 的股本」。' +
+    '<br><br>用股本正規化而不是金額，跨類股才能直接比較，也避開估市值的誤差。' +
+    '<br><br>資料來自證交所，<b>只含上市</b>。'],
+  trust_flow: ['投信買超佔股本比', '算法同外資。投信的部位通常更集中、方向性更明確，但規模比外資小很多。'],
+  margin_chg: ['融資餘額增減',
+    '融資餘額相對前一日的變化率。融資是散戶槓桿的代表，<b>增加通常不是好事</b>，所以在計分時是反向指標。'],
+
+  rs_ratio: ['相對強度 RS-Ratio',
+    '這個類股指數相對大盤的強弱，以 100 為中心。<b>大於 100 代表比大盤強</b>。' +
+    '<br><br>採用 Julius de Kempenaer 的 JdK 方法，60 個交易日滾動窗格。'],
+  rs_momentum: ['相對強度動能 RS-Momentum',
+    '相對強度本身的變化速度，同樣以 100 為中心。<b>大於 100 代表相對強度還在往上</b>，' +
+    '就算目前仍弱於大盤，也可能正在追上來。'],
+  excess_20: ['20 日超額報酬', '近 20 個交易日，這個類股指數的漲幅減去大盤漲幅。正值代表跑贏大盤。'],
+  excess_60: ['60 日超額報酬', '近 60 個交易日（約 3 個月）相對大盤的超額報酬。'],
+  excess_120: ['120 日超額報酬', '近 120 個交易日（約半年）相對大盤的超額報酬。'],
+
+  quadrant: ['四個象限',
+    '橫軸是相對大盤的強弱，縱軸是這個強弱的變化方向，交叉出四個位置：' +
+    '<br><br><b>領先</b>（右上）強，而且還在轉強' +
+    '<br><b>轉弱</b>（右下）仍強，但動能正在流失' +
+    '<br><b>落後</b>（左下）弱，而且持續走弱' +
+    '<br><b>改善</b>（左上）仍弱，但動能開始回升' +
+    '<br><br>典型的輪動是順時針繞圈：改善 → 領先 → 轉弱 → 落後 → 改善。' +
+    '<br><br><b>這是純技術面的相對位置，不含任何基本面資訊。</b>'],
+  motion: ['輪動軌跡',
+    '同一張四象限圖，但可以拖時間軸看類股過去兩年怎麼移動。' +
+    '<br><br><b>圓圈大小代表產業規模</b>（台股用月營收加總、美股用季營收加總），' +
+    '所以你能同時看到「誰在轉強」和「這個產業有多大」。' +
+    '<br><br>點圓圈或下方的標籤可以選取要比較的類股，被選中的會畫出最近約半年的移動軌跡。'],
+  horizon: ['短期／中期／長期',
+    '三個期間用<b>不同的權重</b>，不是同一套分數換個排序。' +
+    '<br><br><b>短期（1–3 個月）</b>以籌碼與價格動能為主。這段期間沒有新的財報資訊，' +
+    '用基本面預測一個月內的漲跌在資訊上是不成立的。' +
+    '<br><b>中期（3 個月–2 年）</b>基本面主導，籌碼與技術面只作為「市場是否已經認同」的驗證。' +
+    '<br><b>長期（2 年以上）</b>只看產業體質與估值，刻意不納入籌碼與短期技術面。'],
+  lookup: ['個股反查',
+    '輸入股票代號或公司名稱，查它屬於哪一個類股。<b>台股與美股會一起搜尋</b>，' +
+    '點下去會自動切換到對應的市場並跳到該類股。' +
+    '<br><br>例如：2330、台積電、6488、NVDA、Tesla。'],
+};
+
+const helpPop = document.getElementById('helppop');
+const helpBody = document.getElementById('helpbody');
+const helpMask = document.getElementById('helpmask');
+const isTouch = matchMedia('(max-width:700px),(pointer:coarse)').matches;
+let helpTimer = null;
+
+function showHelp(key, anchor){
+  const item = HELP[key];
+  if (!item) return;
+  helpBody.innerHTML = `<h6>${item[0]}</h6><div>${item[1]}</div>`;
+  helpPop.classList.add('show');
+  helpMask.classList.toggle('show', isTouch);
+  if (isTouch) return;                       // 手機是從底部滑出，不需要定位
+
+  const r = anchor.getBoundingClientRect();
+  helpPop.style.left = '0px'; helpPop.style.top = '0px';   // 先歸零才量得到真實寬高
+  const w = helpPop.offsetWidth, h = helpPop.offsetHeight;
+  let left = r.left + window.scrollX + r.width / 2 - w / 2;
+  left = Math.max(10, Math.min(left, window.innerWidth - w - 10));
+  // 上方放不下就翻到下方
+  const above = r.top - h - 9;
+  const top = above > 8 ? above + window.scrollY : r.bottom + window.scrollY + 9;
+  helpPop.style.left = left + 'px';
+  helpPop.style.top = top + 'px';
+}
+function hideHelp(){
+  helpPop.classList.remove('show');
+  helpMask.classList.remove('show');
+}
+helpMask.onclick = hideHelp;
+helpPop.querySelector('.close').onclick = hideHelp;
+document.addEventListener('keydown', e => { if (e.key === 'Escape') hideHelp(); });
+
+// 用事件委派，因為表格與圖表都是動態重繪的
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-help]');
+  if (t){ e.stopPropagation(); showHelp(t.dataset.help, t); return; }
+  if (!helpPop.contains(e.target)) hideHelp();
+});
+if (!isTouch){
+  document.addEventListener('mouseover', e => {
+    const t = e.target.closest('[data-help]');
+    if (!t) return;
+    clearTimeout(helpTimer);
+    helpTimer = setTimeout(() => showHelp(t.dataset.help, t), 90);
+  });
+  document.addEventListener('mouseout', e => {
+    if (!e.target.closest('[data-help]')) return;
+    clearTimeout(helpTimer);
+    helpTimer = setTimeout(() => {
+      if (!helpPop.matches(':hover')) hideHelp();
+    }, 160);
+  });
+}
+const HB = k => `<i class="hlp" data-help="${k}" role="button" tabindex="0"
+  aria-label="說明">?</i>`;
+
+/* ---------- 外觀偏好：亮/暗/跟隨系統，以及漲跌配色 ----------
+   兩者都存在 localStorage，重新整理或下次打開都會記得。
+   漲跌配色的預設值看市場：台股用紅漲綠跌，美股用綠漲紅跌，
+   但使用者一旦手動選過就固定，不再隨市場切換而變。 */
+const PREF = {
+  theme: localStorage.getItem('theme') || 'auto',
+  updown: localStorage.getItem('updown') || null,   // null 代表還沒手動選過
+};
+
+function applyPrefs(){
+  const root = document.documentElement;
+  if (PREF.theme === 'auto') root.removeAttribute('data-theme');
+  else root.setAttribute('data-theme', PREF.theme);
+
+  const ud = PREF.updown || (MARKET === 'us' ? 'gr' : 'rg');
+  root.setAttribute('data-updown', ud);
+
+  document.querySelectorAll('#themeSeg button').forEach(b =>
+    b.setAttribute('aria-pressed', b.dataset.t === PREF.theme));
+  document.querySelectorAll('#udSeg button').forEach(b =>
+    b.setAttribute('aria-pressed', b.dataset.u === ud));
+}
+
+document.querySelectorAll('#themeSeg button').forEach(b => b.onclick = () => {
+  PREF.theme = b.dataset.t;
+  localStorage.setItem('theme', PREF.theme);
+  applyPrefs();
+});
+document.querySelectorAll('#udSeg button').forEach(b => b.onclick = () => {
+  PREF.updown = b.dataset.u;
+  localStorage.setItem('updown', PREF.updown);
+  applyPrefs();
+});
+
 const MARKETS = {
   tw: {label:'台股', file:'data/dashboard.json', title:'台股類股輪動看板'},
   us: {label:'美股', file:'data/dashboard_us.json', title:'美股類股輪動看板'},
@@ -246,6 +558,9 @@ const COLUMNS = {
 const NEUTRAL = new Set(['pe','profit_breadth']);
 
 let DATA = null, HORIZON = 'medium', SELECTED = null, MARKET = 'tw';
+// 時間軸圖的狀態。必須在這裡宣告：loadMarket() 會用到它們，而 loadMarket
+// 在檔案下方就被呼叫，let 沒有提升初始化，宣告晚了會踩到暫時性死區。
+let COMPARE = new Set(), T = null, PLAYING = null;
 const CACHE = {};
 
 function fail(e){
@@ -257,20 +572,27 @@ function fail(e){
      <p style="font-size:12px">（${e.message}）</p></div>`;
 }
 
-function loadMarket(key){
-  MARKET = key; SELECTED = null;
-  const q = document.getElementById('q');
-  if (q){ q.value = ''; document.getElementById('qres').innerHTML = ''; }
-  if (CACHE[key]) { DATA = CACHE[key]; init(); return Promise.resolve(); }
+function fetchDashboard(key){
+  if (CACHE[key]) return Promise.resolve(CACHE[key]);
   return fetch(MARKETS[key].file)
     .then(r => { if(!r.ok) throw new Error(r.status); return r.json(); })
-    .then(d => { CACHE[key] = d; DATA = d; init(); })
-    .catch(fail);
+    .then(d => (CACHE[key] = d));
+}
+
+// keepSearch：從搜尋結果跳過來時要保留輸入的關鍵字，不然使用者剛打的字會被清掉
+function loadMarket(key, keepSearch){
+  MARKET = key; SELECTED = null;
+  // 兩個市場的類股名稱與時間軸長度都不同，切換時要重置，不然會選到不存在的類股
+  COMPARE = new Set(); T = null; stopPlay();
+  const q = document.getElementById('q');
+  if (q && !keepSearch){ q.value = ''; document.getElementById('qres').innerHTML = ''; }
+  return fetchDashboard(key).then(d => { DATA = d; init(); }).catch(fail);
 }
 loadMarket('tw');
 
 function init(){
   const a = DATA.data_asof;
+  applyPrefs();   // 沒手動選過配色時，預設值要跟著市場走
   document.getElementById('title').textContent = MARKETS[MARKET].title;
   document.title = MARKETS[MARKET].title;
   document.getElementById('asof').innerHTML = MARKET === 'tw'
@@ -311,10 +633,14 @@ const roc_q = q => q ? `民國${q.replace('Q','年累計至第')}季` : '—';
 
 function render(){
   const h = DATA.horizons[HORIZON];
-  document.querySelectorAll('.tab').forEach(t =>
+  // 選擇器一定要限定在 #tabs 裡：市場那排也是 .tab，用 .tab 全掃會把它們的
+  // 選取狀態一起清掉，重繪之後就看不出現在停在台股還是美股
+  document.querySelectorAll('#tabs .tab').forEach(t =>
     t.setAttribute('aria-selected', t.dataset.k === HORIZON));
+  document.querySelectorAll('#markets .tab').forEach(t =>
+    t.setAttribute('aria-selected', t.dataset.m === MARKET));
   document.getElementById('note').innerHTML =
-    `<b>${h.label}（${h.range}）</b>　${h.note}`;
+    `<b>${h.label}（${h.range}）</b>${HB('horizon')}　${h.note}`;
   document.getElementById('tableTitle').textContent =
     `類股排名 — 依${h.label}分數排序`;
 
@@ -323,9 +649,10 @@ function render(){
 
   const cols = COLUMNS[MARKET];
   document.getElementById('thead').innerHTML =
-    `<tr><th>#</th><th>類股</th><th>分數</th><th>評等</th>` +
-    cols.map(c => `<th>${c[1]}</th>`).join('') +
-    `<th>${MARKET === 'tw' ? '家數' : '成分'}</th></tr>`;
+    `<tr><th>#${HB('rank')}</th><th>類股</th><th>分數${HB('score')}</th>` +
+    `<th>評等${HB('verdict')}</th>` +
+    cols.map(c => `<th>${c[1]}${HB(c[0])}</th>`).join('') +
+    `<th>${MARKET === 'tw' ? `家數${HB('members')}` : `成分${HB('etf')}`}</th></tr>`;
 
   document.getElementById('rows').innerHTML = list.map(s => {
     const sc = s.scores[HORIZON], r = s.raw;
@@ -357,8 +684,149 @@ function render(){
 
   drawQuadrants(list);
   drawRRG(list);
+  drawMotion(list);
   drawDetail(list);
 }
+
+/* ---------- 時間軸輪動圖 ----------
+   每個類股在每個時間點都有一組 (相對強度, 動能) 座標，拖時間軸就能看到
+   它們怎麼在四個象限之間繞。圓圈大小代表產業規模。
+   （COMPARE / T / PLAYING 的宣告在檔案上方，見那裡的註解） */
+function pathLen(list){
+  const s = list.find(x => x.rrg && x.rrg.path);
+  return s ? s.rrg.path.length / 2 : 0;
+}
+
+function drawMotion(list){
+  const box = document.getElementById('mchart');
+  const n = pathLen(list);
+  const card = document.getElementById('motion');
+  if (!n){ card.hidden = true; return; }
+  card.hidden = false;
+
+  const slider = document.getElementById('tslider');
+  slider.max = n - 1;
+  if (T === null || T > n - 1) T = n - 1;
+  slider.value = T;
+
+  const dates = list.find(x => x.rrg && x.rrg.path_dates)?.rrg.path_dates || [];
+  document.getElementById('tlabel').textContent = dates[T] || '';
+  document.getElementById('scaleUnit').textContent =
+    MARKET === 'tw' ? '月營收' : '季營收';
+
+  const pts = list.filter(s => s.rrg && s.rrg.path);
+  // 軸的範圍用「所有時間點」算，不是只看當下——否則拖時間軸時整張圖會亂跳
+  let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9;
+  for (const s of pts){
+    const p = s.rrg.path;
+    for (let i = 0; i < p.length; i += 2){
+      if (p[i] < x0) x0 = p[i];       if (p[i] > x1) x1 = p[i];
+      if (p[i+1] < y0) y0 = p[i+1];   if (p[i+1] > y1) y1 = p[i+1];
+    }
+  }
+  const padX = (x1 - x0) * 0.06 || 1, padY = (y1 - y0) * 0.06 || 1;
+  x0 -= padX; x1 += padX; y0 -= padY; y1 += padY;
+
+  const W = 760, H = 430, M = 34;
+  const sx = v => M + (v - x0) / (x1 - x0) * (W - M * 2);
+  const sy = v => H - M - (v - y0) / (y1 - y0) * (H - M * 2);
+
+  const maxScale = Math.max(...pts.map(s => s.scale || 0), 1);
+  const radius = s => 5 + 20 * Math.sqrt((s.scale || 0) / maxScale);
+  const any = COMPARE.size > 0;
+  const TRAIL = 26;   // 約半年（每點一週）
+
+  const marks = pts.map(s => {
+    const p = s.rrg.path;
+    const x = sx(p[T*2]), y = sy(p[T*2+1]);
+    const on = !any || COMPARE.has(s.industry);
+    const r = radius(s) * (on ? 1 : 0.42);
+    const col = `var(--${QC[quadOf(p[T*2], p[T*2+1])]})`;
+
+    let trail = '';
+    if (any && COMPARE.has(s.industry)){
+      const seg = [];
+      for (let k = Math.max(0, T - TRAIL); k <= T; k++)
+        seg.push(`${sx(p[k*2])},${sy(p[k*2+1])}`);
+      trail = `<polyline points="${seg.join(' ')}" fill="none" stroke="${col}"
+        stroke-width="1.6" opacity=".5" stroke-linejoin="round"/>`;
+    }
+    const label = on
+      ? `<text x="${x}" y="${y - r - 5}" text-anchor="middle" font-size="11"
+          font-weight="${any ? 700 : 400}" fill="var(--ink)" opacity="${any ? 1 : .78}"
+          style="pointer-events:none">${s.industry.replace(/(工業|業)$/,'')}</text>`
+      : '';
+    return `${trail}<g class="mdot" data-i="${s.industry}">
+      <circle cx="${x}" cy="${y}" r="${r}" fill="${col}"
+        opacity="${on ? .55 : .16}" stroke="${col}" stroke-width="${on ? 1.5 : 0}"/>
+      ${label}</g>`;
+  }).join('');
+
+  box.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img"
+    aria-label="類股輪動時間軸圖">
+    <rect x="${sx(100)}" y="${M}" width="${Math.max(0,W-M-sx(100))}"
+      height="${Math.max(0,sy(100)-M)}" fill="var(--lead)" opacity=".05"/>
+    <rect x="${M}" y="${sy(100)}" width="${Math.max(0,sx(100)-M)}"
+      height="${Math.max(0,H-M-sy(100))}" fill="var(--lag)" opacity=".05"/>
+    <line x1="${sx(100)}" y1="${M}" x2="${sx(100)}" y2="${H-M}"
+      stroke="var(--line)" stroke-dasharray="4 4"/>
+    <line x1="${M}" y1="${sy(100)}" x2="${W-M}" y2="${sy(100)}"
+      stroke="var(--line)" stroke-dasharray="4 4"/>
+    <text x="${W-M}" y="${sy(100)-7}" text-anchor="end" font-size="10.5"
+      fill="var(--muted)">相對大盤越強 →</text>
+    <text x="${sx(100)+7}" y="${M+2}" font-size="10.5" fill="var(--muted)">↑ 動能越強</text>
+    <text x="${W-M}" y="${M+2}" text-anchor="end" font-size="11"
+      fill="var(--lead)" opacity=".65">領先</text>
+    <text x="${M}" y="${H-M-5}" font-size="11" fill="var(--lag)" opacity=".65">落後</text>
+    ${marks}
+  </svg>`;
+
+  box.querySelectorAll('.mdot').forEach(g =>
+    g.onclick = () => toggleCompare(g.dataset.i));
+
+  const chips = document.getElementById('mchips');
+  chips.innerHTML = list.map(s => `<button class="chip ${
+    COMPARE.has(s.industry) ? 'on' : ''}" data-i="${s.industry}"
+    >${s.industry.replace(/(工業|業)$/,'')}</button>`).join('');
+  chips.querySelectorAll('.chip').forEach(c =>
+    c.onclick = () => toggleCompare(c.dataset.i));
+}
+
+function quadOf(x, y){
+  if (x >= 100 && y >= 100) return '領先';
+  if (x >= 100) return '轉弱';
+  if (y >= 100) return '改善';
+  return '落後';
+}
+
+function toggleCompare(name){
+  COMPARE.has(name) ? COMPARE.delete(name) : COMPARE.add(name);
+  render();
+}
+
+document.getElementById('tslider').oninput = e => {
+  T = +e.target.value;
+  stopPlay();
+  render();
+};
+document.getElementById('mclear').onclick = () => { COMPARE.clear(); render(); };
+
+function stopPlay(){
+  if (PLAYING){ clearInterval(PLAYING); PLAYING = null; }
+  document.getElementById('play').textContent = '▶';
+}
+document.getElementById('play').onclick = () => {
+  if (PLAYING){ stopPlay(); return; }
+  const n = pathLen(DATA.sectors);
+  if (!n) return;
+  if (T >= n - 1) T = 0;          // 播到底了就從頭來
+  document.getElementById('play').textContent = '❚❚';
+  PLAYING = setInterval(() => {
+    if (T >= n - 1){ stopPlay(); return; }
+    T++;
+    render();
+  }, 140);
+};
 
 // 象限順序刻意排成和 RRG 座標一樣：上排是動能向上、右邊是相對強度高
 const QUADS = [
@@ -456,70 +924,101 @@ const QC = {'領先':'lead','改善':'improve','轉弱':'weaken','落後':'lag'}
 document.getElementById('showScatter').onchange = () => render();
 
 /* ---------- 個股反查：輸入代號或名稱，找出它屬於哪一類股 ----------
-   對照表另外放一個檔案，使用者真的要查的時候才載入，不拖慢首頁。 */
+   跨市場搜尋：不管現在停在哪個分頁，台股和美股都會一起找。點下去會自動
+   切到該檔所屬的市場再跳到對應類股，使用者不必先猜它是台股還美股。
+
+   對照表與另一個市場的看板資料都是第一次搜尋時才載入，不拖慢首頁。 */
 const IDX_FILE = {tw:'data/stocks_tw.json', us:'data/stocks_us.json'};
 const IDX = {};
 const qBox = document.getElementById('q'), qRes = document.getElementById('qres');
 
-function loadIndex(){
-  if (IDX[MARKET]) return Promise.resolve(IDX[MARKET]);
-  return fetch(IDX_FILE[MARKET]).then(r => r.ok ? r.json() : Promise.reject(r.status))
-    .then(d => (IDX[MARKET] = d));
+function loadIndex(key){
+  if (IDX[key]) return Promise.resolve(IDX[key]);
+  return fetch(IDX_FILE[key]).then(r => r.ok ? r.json() : Promise.reject(r.status))
+    .then(d => (IDX[key] = d));
 }
 
-let qTimer = null;
+let qTimer = null, qSeq = 0;
 qBox.oninput = () => {
   clearTimeout(qTimer);
   qTimer = setTimeout(runSearch, 130);
 };
 
+// 排序很重要：查 V 要先給 Visa，不是名字裡剛好有 v 的公司；
+// 查 XOM 要先給 Exxon，不是拼字裡含 x-o-m 的 Xometry。
+function rankHit(code, name, q){
+  const c = code.toLowerCase(), n = name.toLowerCase();
+  if (c === q) return 0;
+  if (n === q) return 1;
+  if (c.startsWith(q)) return 2;
+  if (n.startsWith(q)) return 3;
+  if (c.includes(q)) return 4;
+  if (n.includes(q)) return 5;
+  return 9;
+}
+
 function runSearch(){
   const raw = qBox.value.trim();
   if (!raw){ qRes.innerHTML = ''; return; }
   qRes.innerHTML = '<div class="qmsg">搜尋中…</div>';
-  loadIndex().then(d => {
-    const q = raw.toLowerCase();
-    // 排序很重要：查 V 要先給 Visa，不是名字裡剛好有 v 的公司；
-    // 查 XOM 要先給 Exxon，不是拼字裡含 x-o-m 的 Xometry。
-    const rank = ([code, name]) => {
-      const c = code.toLowerCase(), n = name.toLowerCase();
-      if (c === q) return 0;
-      if (n === q) return 1;
-      if (c.startsWith(q)) return 2;
-      if (n.startsWith(q)) return 3;
-      if (c.includes(q)) return 4;
-      if (n.includes(q)) return 5;
-      return 9;
-    };
-    const hits = d.stocks
-      .map(s => [rank(s), s])
-      .filter(([r]) => r < 9)
-      .sort((a, b) => a[0] - b[0] || a[1][0].length - b[1][0].length)
-      .slice(0, 40)
-      .map(([, s]) => s);
-    if (!hits.length){
-      qRes.innerHTML = `<div class="qmsg">在${MARKETS[MARKET].label}找不到「${raw}」。
-        代號、公司名都可以查；換到另一個市場的分頁再試試看。</div>`;
+
+  const seq = ++qSeq;   // 打字很快時，舊的請求回來不能蓋掉新的結果
+  const keys = Object.keys(MARKETS);
+  Promise.all(keys.map(k =>
+    Promise.all([fetchDashboard(k), loadIndex(k)])
+      .then(([dash, idx]) => ({key: k, dash, idx}))
+      .catch(() => null)
+  )).then(markets => {
+    if (seq !== qSeq) return;
+    const loaded = markets.filter(Boolean);
+    if (!loaded.length){
+      qRes.innerHTML = `<div class="qmsg">讀不到對照表。
+        請重新執行 <code>update.cmd</code> 產生 stocks_tw.json 與 stocks_us.json。</div>`;
       return;
     }
-    qRes.innerHTML = hits.map(([code, name, ind, mk]) => {
-      const industry = d.industries[ind];
-      const sec = DATA.sectors.find(s => s.industry === industry);
+
+    const q = raw.toLowerCase();
+    const hits = [];
+    for (const m of loaded){
+      for (const [code, name, ind, mk] of m.idx.stocks){
+        const r = rankHit(code, name, q);
+        if (r < 9) hits.push({r, code, name, market: m.key,
+                              industry: m.idx.industries[ind],
+                              tag: m.idx.markets[mk], dash: m.dash});
+      }
+    }
+    // 同分時代號短的優先（V 勝過 VTRS），再來才是現在所在的市場優先
+    hits.sort((a, b) => a.r - b.r
+      || a.code.length - b.code.length
+      || (a.market === MARKET ? -1 : 1));
+
+    if (!hits.length){
+      qRes.innerHTML = `<div class="qmsg">台股與美股都找不到「${raw}」。
+        代號、公司名都可以查（例如 2330、台積電、NVDA、Tesla）。</div>`;
+      return;
+    }
+
+    qRes.innerHTML = hits.slice(0, 40).map(h => {
+      const sec = h.dash.sectors.find(s => s.industry === h.industry);
       const sc = sec ? sec.scores[HORIZON] : null;
-      return `<div class="hit" data-i="${industry}">
-        <span class="c">${code}</span>
-        <span>${name}${d.markets[mk] ? `<span class="mk">${d.markets[mk]}</span>` : ''}</span>
-        <span class="s">${industry}${sc ? `　${sc.verdict} ${sc.score.toFixed(0)}` : ''} ›</span>
+      return `<div class="hit" data-i="${h.industry}" data-m="${h.market}">
+        <span class="c">${h.code}</span>
+        <span>${h.name}${h.tag ? `<span class="mk">${h.tag}</span>` : ''}</span>
+        <span class="s">${h.industry}${sc ? `　${sc.verdict} ${sc.score.toFixed(0)}` : ''} ›</span>
       </div>`;
     }).join('');
+
     qRes.querySelectorAll('.hit').forEach(h => h.onclick = () => {
-      SELECTED = h.dataset.i;
-      render();
-      document.getElementById('detail').scrollIntoView({behavior:'smooth', block:'center'});
+      const jump = () => {
+        SELECTED = h.dataset.i;
+        render();
+        document.getElementById('detail')
+          .scrollIntoView({behavior:'smooth', block:'center'});
+      };
+      // 查到的是另一個市場的股票，先把市場切過去再跳
+      if (h.dataset.m !== MARKET) loadMarket(h.dataset.m, true).then(jump);
+      else jump();
     });
-  }).catch(() => {
-    qRes.innerHTML = `<div class="qmsg">讀不到對照表。
-      請重新執行 <code>update.cmd</code> 產生 stocks_${MARKET}.json。</div>`;
   });
 }
 
@@ -543,7 +1042,8 @@ function drawDetail(list){
   const contrib = items.map(c => {
     const w = Math.abs(c.impact)/max*50;
     return `<li>
-      <span class="n"><span class="g">${GN[c.meta.group]}</span>${c.meta.label}</span>
+      <span class="n"><span class="g">${GN[c.meta.group]}</span>${c.meta.label}${
+        HELP[c.metric] ? HB(c.metric) : ''}</span>
       <span class="val">${c.raw ?? '—'}</span>
       <span class="imp"><i class="${c.impact>=0?'p':'m'}"
         style="${c.impact>=0?`left:50%;width:${w}%`:`left:${50-w}%;width:${w}%`}"></i></span>
@@ -572,7 +1072,8 @@ function drawDetail(list){
       ${MARKET === 'tw'
         ? `成分股 ${s.members} 檔（上市 ${s.members_twse}、上櫃 ${s.members_otc}）`
         : `代表 ETF ${s.etf}　·　SEC 歸類 ${s.members} 家`}　·
-      RRG 象限：${s.quadrant ?? '—'}　·　指標覆蓋率 ${sc.coverage}%</p>
+      象限：${s.quadrant ?? '—'}${HB('quadrant')}　·
+      指標覆蓋率 ${sc.coverage}%${HB('coverage')}</p>
       ${MARKET === 'tw' && s.members_otc ? `<p style="font-size:12px;margin-top:5px">
         上櫃公司計入營收、估值與家數；營益率／ROE 與籌碼面只採上市，
         因為季報與三大法人日資料在櫃買沒有開放端點。</p>` : ''}
