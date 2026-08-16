@@ -604,6 +604,31 @@ def score(sectors: dict[str, dict]) -> None:
             h["rank"] = pos
 
 
+def _write_stock_index(stocks: dict[str, dict]) -> None:
+    """輸出「個股 -> 類股」的反查表。
+
+    看板本身只列出每個類股前幾名的個股，但使用者常常是反過來問的：
+    「我手上的台積電算哪一類？」所以另外出一份完整對照表，前端在使用者
+    真的按下搜尋時才載入，不拖慢首頁。
+
+    產業名稱用索引而不是重複字串，1900 多檔可以省下約三分之一體積。
+    """
+    industries = sorted({s["industry"] for s in stocks.values()})
+    idx = {name: i for i, name in enumerate(industries)}
+    rows = sorted(
+        ([s["code"], s["name"], idx[s["industry"]],
+          0 if s.get("market") == "twse" else 1]
+         for s in stocks.values()),
+        key=lambda r: r[0])
+
+    path = OUT / "stocks_tw.json"
+    path.write_text(
+        json.dumps({"industries": industries, "markets": ["上市", "上櫃"],
+                    "stocks": rows}, ensure_ascii=False, separators=(",", ":")),
+        encoding="utf-8")
+    print(f"輸出 {path.name}  {len(rows):,} 檔  ({path.stat().st_size / 1024:.0f} KB)")
+
+
 def verdict(score_value: float) -> str:
     if score_value >= 80:
         return "強"
@@ -681,6 +706,8 @@ def main() -> None:
     path.write_text(
         json.dumps(payload, ensure_ascii=False, separators=(",", ":")),
         encoding="utf-8")
+
+    _write_stock_index(stocks)
     size = path.stat().st_size / 1024
     print(f"\n輸出 {path}  ({size:.0f} KB)")
 

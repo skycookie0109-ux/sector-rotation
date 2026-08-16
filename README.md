@@ -1,8 +1,15 @@
-# 台股類股輪動看板
+# 類股輪動看板（台股上市櫃 + 美股）
 
-用證交所公開資料，回答一個問題：**現在哪些產業的體質正在變好、哪些在變差。**
+用官方公開資料，回答一個問題：**現在哪些產業的體質正在變好、哪些在變差。**
 
 它刻意不做的事：不預測股價、不給買賣點、不做個股推薦。
+
+| 市場 | 類股數 | 價格來源 | 基本面來源 | 籌碼面 |
+|---|---|---|---|---|
+| 台股 | 32 | 證交所類股指數 | 上市：證交所 OpenAPI<br>上櫃：櫃買 OpenAPI + 公開資訊觀測站 | 三大法人、融資餘額（僅上市） |
+| 美股 | 11 | Yahoo Finance（SPDR 類股 ETF） | SEC XBRL frames | 無（美國沒有等同的公開日資料） |
+
+全部免金鑰、免註冊。
 
 ---
 
@@ -17,9 +24,31 @@ pip install -r requirements.txt
 然後雙擊：
 
 1. **`update.cmd`** — 抓資料並計算分數。首次執行約 20 分鐘（要回補 2.5 年的類股指數歷史），之後每次約 1 分鐘。
-2. **`serve.cmd`** — 啟動本機網頁伺服器，瀏覽器會自動開啟 <http://localhost:8848/>。
+2. **`serve.cmd`** — 啟動本機網頁伺服器，瀏覽器會自動開啟 <http://localhost:8749/>。
 
 > 不能直接雙擊 `web/index.html`。瀏覽器的安全限制會讓它讀不到 JSON 資料檔，一定要透過 `serve.cmd`。
+
+> `.cmd` 檔案裡刻意全部用英文。cmd.exe 是用系統的 OEM 編碼（繁中 Windows 是 cp950）讀批次檔，檔案裡若有 UTF-8 中文會被拆成亂碼當成指令執行。中文輸出一律交給 Python。
+
+美股資料要另外跑（`update.cmd` 已包含）：
+
+```bash
+python scripts/build_us.py
+```
+
+首次執行會下載一份約 85 MB 的 SEC 季度批次檔（用來取得每家公司的 SIC 產業代碼），之後有快取不會重抓。
+
+---
+
+## 部署（Vercel）
+
+專案已經是 git repo，也附好 `vercel.json` 與 GitHub Actions 排程。要讓家人朋友能看：
+
+1. 到 <https://github.com/new> 建立一個名為 `sector-rotation` 的 repo（**不要**勾選 Add README / .gitignore，保持全空）
+2. 在專案資料夾執行 `git push -u origin main`
+3. 到 <https://vercel.com/new> 匯入這個 repo，設定會自動從 `vercel.json` 讀取
+
+之後 `.github/workflows/update-data.yml` 會在每個平日台北時間 19:30 自動更新資料並 push，Vercel 收到 push 就會重新部署。也就是說網站會自己更新，你不用做任何事。
 
 ---
 

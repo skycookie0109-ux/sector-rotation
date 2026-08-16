@@ -75,6 +75,35 @@ def pick_periods() -> tuple[str, str, str, str]:
     raise SystemExit("找不到有足夠資料的季度")
 
 
+def _write_stock_index(sic_map: dict) -> None:
+    """輸出「美股代號 -> 類股」的反查表。
+
+    收錄範圍是「有 SIC 分類且有股票代號」的公司，而不是「本季財報有進榜」的
+    公司。這個差別很重要：SEC 的 frames API 只收期間剛好對齊曆年季度的資料，
+    所以像 NVIDIA（財年一月底結束）、Walmart 這種非曆年財年的公司會落榜。
+    反查表要回答的是「這檔屬於哪一類」，跟它這季有沒有對齊曆年無關。
+    """
+    tickers = us.company_tickers()
+    industries = sorted(set(us.SECTOR_ETF))
+    idx = {name: i for i, name in enumerate(industries)}
+
+    rows = []
+    for cik, (ticker, title) in tickers.items():
+        info = sic_map.get(cik)
+        sector = us.sic_to_sector(info[1] if info else None, cik)
+        if sector is None:
+            continue
+        rows.append([ticker, title[:44], idx[sector], 0])
+    rows.sort()
+
+    path = OUT / "stocks_us.json"
+    path.write_text(
+        json.dumps({"industries": industries, "markets": ["美股"],
+                    "stocks": rows}, ensure_ascii=False, separators=(",", ":")),
+        encoding="utf-8")
+    print(f"輸出 {path.name}  {len(rows):,} 檔  ({path.stat().st_size / 1024:.0f} KB)")
+
+
 def main() -> None:
     print("=" * 68)
     print("美股類股輪動")
@@ -100,19 +129,20 @@ def main() -> None:
 
     # DERA 的季度批次檔會比 XBRL frames 晚幾週才發布，往前退到抓得到的那一期。
     # SIC 分類幾乎不會變動，用上一季的對照表不影響結果。
-    sic_map = {}
     year, q = int(cur_p[2:6]), int(cur_p[-1])
-    for _ in range(5):
+    for _ in range(3):     # 最新一季通常還沒發布，先往前找到起點
         try:
-            sic_map = us.load_sic_map(f"{year}q{q}")
+            us.load_sic_map(f"{year}q{q}")
             break
-        except Exception as exc:  # noqa: BLE001
-            print(f"  {year}q{q} 取不到（{type(exc).__name__}），往前一季")
+        except Exception:  # noqa: BLE001
+            print(f"  {year}q{q} 尚未發布，往前一季")
             q -= 1
             if q == 0:
                 year, q = year - 1, 4
+    sic_map = us.load_sic_map_multi(f"{year}q{q}", back=4)
     if not sic_map:
         raise SystemExit("抓不到 SEC 的 SIC 對照表")
+    print(f"  SIC 對照表合計 {len(sic_map):,} 家")
 
     # --- 依 SIC 歸類後彙總
     agg: dict[str, dict] = defaultdict(
@@ -243,6 +273,8 @@ def main() -> None:
     path.write_text(
         json.dumps(payload, ensure_ascii=False, separators=(",", ":")),
         encoding="utf-8")
+
+    _write_stock_index(sic_map)
     print(f"\n輸出 {path}  ({path.stat().st_size / 1024:.0f} KB)")
     print("\n中期（基本面主導）排名：")
     for s in payload["sectors"]:

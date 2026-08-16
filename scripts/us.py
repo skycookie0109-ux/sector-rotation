@@ -131,6 +131,9 @@ CIK_OVERRIDE = {
     320193: "資訊科技",     # Apple（SIC 3571 本來就對，保險起見固定住）
     1018724: "非必需消費",  # Amazon
     1045810: "資訊科技",    # NVIDIA
+    2115436: "能源",        # ExxonMobil Holdings：SEC 把 XOM 這個代號指到新成立
+                            # 的控股實體，它還沒申報過所以查不到 SIC
+    1577552: "非必需消費",  # 阿里巴巴：SIC 給的是控股公司代碼，GICS 算零售
 }
 
 # 整段 SIC 就與 GICS 不一致的情況，比逐家覆寫有效率。
@@ -195,6 +198,28 @@ def fetch_prices() -> dict[str, list[tuple[str, float]]]:
 
 
 # ------------------------------------------------------------------ SIC 對照
+def load_sic_map_multi(quarter: str, back: int = 3) -> dict[int, tuple[str, int]]:
+    """合併最近幾季的 SIC 對照，涵蓋率會好很多。
+
+    單季的批次檔只含「那一季有申報」的公司，所以年報制的外國發行人
+    （阿里巴巴、豐田、三菱日聯這類 20-F 申報人）常常整季缺席。
+    往前多疊幾季就能把它們補進來。已下載過的季度不會重抓。
+    """
+    year, q = int(quarter[:4]), int(quarter[-1])
+    merged: dict[int, tuple[str, int]] = {}
+    for _ in range(back):
+        try:
+            # 舊的資料不覆蓋新的，所以先抓到的（較新的）優先
+            for cik, info in load_sic_map(f"{year}q{q}").items():
+                merged.setdefault(cik, info)
+        except Exception as exc:  # noqa: BLE001
+            print(f"  {year}q{q} 略過（{type(exc).__name__}）")
+        q -= 1
+        if q == 0:
+            year, q = year - 1, 4
+    return merged
+
+
 def load_sic_map(quarter: str) -> dict[int, tuple[str, int]]:
     """從 SEC 的季度批次檔取 cik -> (公司名, SIC)。
 
@@ -237,6 +262,26 @@ REVENUE_TAGS = [
     "Revenues",
     "RevenueFromContractWithCustomerIncludingAssessedTax",
 ]
+
+
+def company_tickers() -> dict[int, tuple[str, str]]:
+    """SEC 的代號對照：cik -> (ticker, 公司名)。"""
+    cp = CACHE / "sec_company_tickers.json"
+    if cp.exists():
+        payload = json.loads(cp.read_text(encoding="utf-8"))
+    else:
+        resp = requests.get("https://www.sec.gov/files/company_tickers.json",
+                            headers=SEC_HEADERS, timeout=60)
+        resp.raise_for_status()
+        payload = resp.json()
+        cp.write_text(json.dumps(payload), encoding="utf-8")
+
+    out: dict[int, tuple[str, str]] = {}
+    for row in payload.values():
+        cik = int(row["cik_str"])
+        # 同一家公司可能有多個代號（不同股別），保留第一個就好
+        out.setdefault(cik, (row["ticker"], row.get("title", "")))
+    return out
 
 
 def frames(tag: str, period: str, unit: str = "USD") -> list[dict]:

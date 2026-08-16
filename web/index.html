@@ -31,6 +31,22 @@ header h1{font-size:22px;margin:0 0 4px}
   border-radius:8px;padding:12px 15px;margin:12px 0 20px;font-size:14px;color:var(--muted)}
 .note b{color:var(--ink)}
 
+.lookup{margin:14px 0 4px;position:relative}
+.lookup input{width:100%;padding:10px 13px;font:inherit;font-size:14px;
+  border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink)}
+.lookup input:focus{outline:2px solid var(--accent);outline-offset:-1px;border-color:transparent}
+#qres:not(:empty){margin-top:7px;border:1px solid var(--line);border-radius:8px;
+  background:var(--card);overflow:hidden;max-height:290px;overflow-y:auto}
+.hit{display:grid;grid-template-columns:62px 1fr auto;gap:10px;align-items:center;
+  padding:8px 13px;cursor:pointer;border-bottom:1px solid var(--line);font-size:14px}
+.hit:last-child{border-bottom:0}
+.hit:hover{background:color-mix(in srgb,var(--accent) 8%,transparent)}
+.hit .c{color:var(--muted);font-variant-numeric:tabular-nums;font-size:13px}
+.hit .s{font-size:12px;color:var(--accent);white-space:nowrap}
+.hit .mk{font-size:10.5px;color:var(--muted);border:1px solid var(--line);
+  border-radius:3px;padding:0 4px;margin-left:6px}
+.qmsg{padding:10px 13px;font-size:13px;color:var(--muted)}
+
 .grid{display:grid;grid-template-columns:1fr 400px;gap:18px;align-items:start}
 @media(max-width:900px){.grid{grid-template-columns:1fr}}
 .card{background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden}
@@ -63,7 +79,26 @@ tbody tr.on{background:color-mix(in srgb,var(--accent) 14%,transparent)}
 .q{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:1px}
 .q.領先{background:var(--lead)} .q.改善{background:var(--improve)}
 .q.轉弱{background:var(--weaken)} .q.落後{background:var(--lag)}
-.legend{display:flex;gap:14px;flex-wrap:wrap;padding:10px 15px;font-size:12px;color:var(--muted)}
+.hint{margin:0;padding:10px 15px;font-size:12px;color:var(--muted);
+  border-top:1px solid var(--line)}
+
+/* 四象限分組：32 個標籤擠在散點圖上根本讀不了，改成分組清單直覺得多 */
+#quads{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line)}
+.quad{background:var(--card);padding:11px 13px;min-height:96px}
+.quad h5{margin:0 0 2px;font-size:13px;font-weight:700}
+.quad h5 b{font-size:11px;font-weight:400;color:var(--muted);margin-left:5px}
+.quad .cnt{float:right;font-size:11px;color:var(--muted);font-weight:400}
+.quad.領先 h5{color:var(--lead)} .quad.改善 h5{color:var(--improve)}
+.quad.轉弱 h5{color:var(--weaken)} .quad.落後 h5{color:var(--lag)}
+.chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:7px}
+.chip{font:inherit;font-size:12px;line-height:1.5;padding:2px 7px;cursor:pointer;
+  border:1px solid var(--line);border-radius:11px;background:transparent;
+  color:var(--ink);white-space:nowrap}
+.chip:hover{border-color:var(--accent)}
+.chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.chip s{text-decoration:none;opacity:.5;font-variant-numeric:tabular-nums;margin-left:3px}
+.quad .none{font-size:12px;color:var(--muted);margin-top:7px}
+@media(max-width:700px){#quads{grid-template-columns:1fr}}
 
 #detail{margin-top:18px}
 #detail .head{padding:14px 16px;border-bottom:1px solid var(--line)}
@@ -142,6 +177,13 @@ code{background:color-mix(in srgb,var(--ink) 8%,transparent);padding:1px 5px;bor
 </header>
 
 <div class="tabs" id="markets" style="margin-top:16px"></div>
+
+<div class="lookup">
+  <input id="q" type="search" autocomplete="off"
+    placeholder="查個股屬於哪一類？輸入代號或名稱，例如 2330、台積電、NVDA">
+  <div id="qres"></div>
+</div>
+
 <div class="tabs" id="tabs"></div>
 <div class="note" id="note"></div>
 
@@ -155,14 +197,13 @@ code{background:color-mix(in srgb,var(--ink) 8%,transparent);padding:1px 5px;bor
   </section>
 
   <section class="card">
-    <h2>相對輪動位置（RRG）</h2>
-    <div id="rrg"></div>
-    <div class="legend">
-      <span><i class="q 領先"></i>領先：強且還在轉強</span>
-      <span><i class="q 轉弱"></i>轉弱：仍強但動能流失</span>
-      <span><i class="q 改善"></i>改善：仍弱但動能回升</span>
-      <span><i class="q 落後"></i>落後：弱且持續走弱</span>
-    </div>
+    <h2>相對強弱位置<span style="float:right;font-weight:400;text-transform:none">
+      <label style="cursor:pointer;font-size:12px"><input type="checkbox" id="showScatter"
+        style="vertical-align:-1px"> 散點圖</label></span></h2>
+    <div id="quads"></div>
+    <div id="rrg" hidden></div>
+    <p class="hint">相對大盤而言的位置。順序通常是
+      改善 → 領先 → 轉弱 → 落後 → 改善，繞一圈。</p>
   </section>
 </div>
 
@@ -218,6 +259,8 @@ function fail(e){
 
 function loadMarket(key){
   MARKET = key; SELECTED = null;
+  const q = document.getElementById('q');
+  if (q){ q.value = ''; document.getElementById('qres').innerHTML = ''; }
   if (CACHE[key]) { DATA = CACHE[key]; init(); return Promise.resolve(); }
   return fetch(MARKETS[key].file)
     .then(r => { if(!r.ok) throw new Error(r.status); return r.json(); })
@@ -312,18 +355,55 @@ function render(){
       render();
     });
 
+  drawQuadrants(list);
   drawRRG(list);
   drawDetail(list);
 }
 
-function drawRRG(list){
-  const pts = list.filter(s => s.rrg);
-  const box = document.getElementById('rrg');
-  if (!pts.length){
-    box.innerHTML = `<div class="err" style="padding:24px;font-size:13px">
-      價格歷史還不夠算 RRG，請先執行 <code>update.cmd</code> 回補更多交易日。</div>`;
+// 象限順序刻意排成和 RRG 座標一樣：上排是動能向上、右邊是相對強度高
+const QUADS = [
+  ['改善', '仍弱，但動能開始回升'],
+  ['領先', '強，而且還在轉強'],
+  ['落後', '弱，而且持續走弱'],
+  ['轉弱', '仍強，但動能正在流失'],
+];
+
+function drawQuadrants(list){
+  const box = document.getElementById('quads');
+  if (!list.some(s => s.quadrant)){
+    box.innerHTML = `<div class="quad" style="grid-column:1/-1"><p class="none">
+      價格歷史還不夠計算相對強弱，請先執行 <code>update.cmd</code>。</p></div>`;
     return;
   }
+  box.innerHTML = QUADS.map(([name, desc]) => {
+    const members = list.filter(s => s.quadrant === name)
+      .sort((a,b) => b.scores[HORIZON].score - a.scores[HORIZON].score);
+    const chips = members.map(s => `<button class="chip ${
+      SELECTED===s.industry?'on':''}" data-i="${s.industry}"
+      >${s.industry.replace(/(工業|業)$/,'')}<s>${
+      s.scores[HORIZON].score.toFixed(0)}</s></button>`).join('');
+    return `<div class="quad ${name}">
+      <h5><i class="q ${name}"></i>${name}<b>${desc}</b>
+        <span class="cnt">${members.length}</span></h5>
+      ${members.length ? `<div class="chips">${chips}</div>`
+                       : '<p class="none">目前沒有類股在這一區</p>'}
+    </div>`;
+  }).join('');
+
+  box.querySelectorAll('.chip').forEach(c =>
+    c.onclick = () => {
+      SELECTED = SELECTED === c.dataset.i ? null : c.dataset.i;
+      render();
+    });
+}
+
+function drawRRG(list){
+  const box = document.getElementById('rrg');
+  const on = document.getElementById('showScatter').checked;
+  box.hidden = !on;
+  if (!on) return;
+  const pts = list.filter(s => s.rrg);
+  if (!pts.length){ box.innerHTML = ''; return; }
   const xs = pts.map(p=>p.rrg.rs_ratio), ys = pts.map(p=>p.rrg.rs_momentum);
   const pad = 0.6;
   const x0 = Math.min(...xs)-pad, x1 = Math.max(...xs)+pad;
@@ -373,6 +453,75 @@ function drawRRG(list){
     });
 }
 const QC = {'領先':'lead','改善':'improve','轉弱':'weaken','落後':'lag'};
+document.getElementById('showScatter').onchange = () => render();
+
+/* ---------- 個股反查：輸入代號或名稱，找出它屬於哪一類股 ----------
+   對照表另外放一個檔案，使用者真的要查的時候才載入，不拖慢首頁。 */
+const IDX_FILE = {tw:'data/stocks_tw.json', us:'data/stocks_us.json'};
+const IDX = {};
+const qBox = document.getElementById('q'), qRes = document.getElementById('qres');
+
+function loadIndex(){
+  if (IDX[MARKET]) return Promise.resolve(IDX[MARKET]);
+  return fetch(IDX_FILE[MARKET]).then(r => r.ok ? r.json() : Promise.reject(r.status))
+    .then(d => (IDX[MARKET] = d));
+}
+
+let qTimer = null;
+qBox.oninput = () => {
+  clearTimeout(qTimer);
+  qTimer = setTimeout(runSearch, 130);
+};
+
+function runSearch(){
+  const raw = qBox.value.trim();
+  if (!raw){ qRes.innerHTML = ''; return; }
+  qRes.innerHTML = '<div class="qmsg">搜尋中…</div>';
+  loadIndex().then(d => {
+    const q = raw.toLowerCase();
+    // 排序很重要：查 V 要先給 Visa，不是名字裡剛好有 v 的公司；
+    // 查 XOM 要先給 Exxon，不是拼字裡含 x-o-m 的 Xometry。
+    const rank = ([code, name]) => {
+      const c = code.toLowerCase(), n = name.toLowerCase();
+      if (c === q) return 0;
+      if (n === q) return 1;
+      if (c.startsWith(q)) return 2;
+      if (n.startsWith(q)) return 3;
+      if (c.includes(q)) return 4;
+      if (n.includes(q)) return 5;
+      return 9;
+    };
+    const hits = d.stocks
+      .map(s => [rank(s), s])
+      .filter(([r]) => r < 9)
+      .sort((a, b) => a[0] - b[0] || a[1][0].length - b[1][0].length)
+      .slice(0, 40)
+      .map(([, s]) => s);
+    if (!hits.length){
+      qRes.innerHTML = `<div class="qmsg">在${MARKETS[MARKET].label}找不到「${raw}」。
+        代號、公司名都可以查；換到另一個市場的分頁再試試看。</div>`;
+      return;
+    }
+    qRes.innerHTML = hits.map(([code, name, ind, mk]) => {
+      const industry = d.industries[ind];
+      const sec = DATA.sectors.find(s => s.industry === industry);
+      const sc = sec ? sec.scores[HORIZON] : null;
+      return `<div class="hit" data-i="${industry}">
+        <span class="c">${code}</span>
+        <span>${name}${d.markets[mk] ? `<span class="mk">${d.markets[mk]}</span>` : ''}</span>
+        <span class="s">${industry}${sc ? `　${sc.verdict} ${sc.score.toFixed(0)}` : ''} ›</span>
+      </div>`;
+    }).join('');
+    qRes.querySelectorAll('.hit').forEach(h => h.onclick = () => {
+      SELECTED = h.dataset.i;
+      render();
+      document.getElementById('detail').scrollIntoView({behavior:'smooth', block:'center'});
+    });
+  }).catch(() => {
+    qRes.innerHTML = `<div class="qmsg">讀不到對照表。
+      請重新執行 <code>update.cmd</code> 產生 stocks_${MARKET}.json。</div>`;
+  });
+}
 
 function drawDetail(list){
   const box = document.getElementById('detail');
