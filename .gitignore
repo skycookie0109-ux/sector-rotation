@@ -1,0 +1,14 @@
+# API 回應快取，可重新產生（會長到幾百 MB）
+data/cache/
+
+# 每次執行都會覆蓋的最新快照，不需要版控
+data/snapshot/
+
+# data/history/ 刻意不忽略：回補 2.5 年的指數歷史要跑 20 分鐘，
+# 而且證交所只能一天一天抓，弄丟就要重來。
+# web/data/ 也不忽略：Vercel 靜態部署直接讀這裡的 JSON。
+
+__pycache__/
+*.pyc
+.venv/
+.vercel/

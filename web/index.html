@@ -1,0 +1,447 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>台股類股輪動｜基本面為主的產業體質看板</title>
+<style>
+:root{
+  --bg:#f6f7f9; --card:#fff; --ink:#15181d; --muted:#6b7280; --line:#e4e7ec;
+  --strong:#c0392b; --weak:#1f7a4d; --flat:#8a8f98; --accent:#2b5fd9;
+  --lead:#c0392b; --improve:#2b5fd9; --weaken:#d98324; --lag:#6b7280;
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#0f1115;--card:#171a20;--ink:#e6e8eb;--muted:#9aa1ab;--line:#272b33;
+        --strong:#ff6b5b;--weak:#4ade80;--accent:#6b93ff;
+        --lead:#ff6b5b;--improve:#6b93ff;--weaken:#f0a04b;--lag:#8a919c;}
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:15px/1.6 "Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 16px 60px}
+header h1{font-size:22px;margin:0 0 4px}
+.asof{color:var(--muted);font-size:13px}
+.asof b{color:var(--ink);font-weight:600}
+
+.tabs{display:flex;gap:6px;margin:22px 0 0;flex-wrap:wrap}
+.tab{padding:9px 18px;border:1px solid var(--line);background:var(--card);
+  border-radius:8px;cursor:pointer;font-size:15px;color:var(--ink);font-weight:500}
+.tab[aria-selected="true"]{background:var(--accent);color:#fff;border-color:var(--accent)}
+.note{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--accent);
+  border-radius:8px;padding:12px 15px;margin:12px 0 20px;font-size:14px;color:var(--muted)}
+.note b{color:var(--ink)}
+
+.grid{display:grid;grid-template-columns:1fr 400px;gap:18px;align-items:start}
+@media(max-width:900px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.card h2{font-size:14px;margin:0;padding:12px 15px;border-bottom:1px solid var(--line);
+  color:var(--muted);font-weight:600;letter-spacing:.03em}
+
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{padding:9px 10px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th{color:var(--muted);font-weight:600;font-size:12px;position:sticky;top:0;background:var(--card)}
+th:nth-child(2),td:nth-child(2){text-align:left}
+tbody tr{cursor:pointer}
+tbody tr:hover{background:color-mix(in srgb,var(--accent) 8%,transparent)}
+tbody tr.on{background:color-mix(in srgb,var(--accent) 14%,transparent)}
+.rank{color:var(--muted);font-variant-numeric:tabular-nums}
+.bar{position:relative;min-width:74px}
+.bar i{position:absolute;left:0;top:50%;transform:translateY(-50%);height:16px;
+  border-radius:3px;background:color-mix(in srgb,var(--accent) 28%,transparent)}
+.bar span{position:relative;font-variant-numeric:tabular-nums;font-weight:600}
+.v{padding:2px 7px;border-radius:4px;font-size:12px;font-weight:600}
+.v.強{background:color-mix(in srgb,var(--strong) 20%,transparent);color:var(--strong)}
+.v.偏強{background:color-mix(in srgb,var(--strong) 12%,transparent);color:var(--strong)}
+.v.中性{color:var(--flat)}
+.v.偏弱{background:color-mix(in srgb,var(--weak) 12%,transparent);color:var(--weak)}
+.v.弱{background:color-mix(in srgb,var(--weak) 20%,transparent);color:var(--weak)}
+.pos{color:var(--strong)} .neg{color:var(--weak)} .na{color:var(--muted)}
+.warn{font-size:11px;color:var(--weaken);border:1px solid var(--weaken);
+  border-radius:3px;padding:0 4px;margin-left:5px}
+
+.q{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:1px}
+.q.領先{background:var(--lead)} .q.改善{background:var(--improve)}
+.q.轉弱{background:var(--weaken)} .q.落後{background:var(--lag)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;padding:10px 15px;font-size:12px;color:var(--muted)}
+
+#detail{margin-top:18px}
+#detail .head{padding:14px 16px;border-bottom:1px solid var(--line)}
+#detail .head h3{margin:0 0 3px;font-size:17px}
+#detail .head p{margin:0;color:var(--muted);font-size:13px}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:0}
+@media(max-width:820px){.split{grid-template-columns:1fr}}
+.split>div{padding:14px 16px}
+.split>div+div{border-left:1px solid var(--line)}
+@media(max-width:820px){.split>div+div{border-left:0;border-top:1px solid var(--line)}}
+.split h4{margin:0 0 10px;font-size:12px;color:var(--muted);letter-spacing:.03em}
+.contrib{font-size:13px}
+.contrib li{list-style:none;display:grid;grid-template-columns:1fr 54px 60px;
+  gap:8px;align-items:center;padding:4px 0}
+.contrib .n{overflow:hidden;text-overflow:ellipsis}
+.contrib .g{font-size:10px;color:var(--muted);border:1px solid var(--line);
+  border-radius:3px;padding:0 4px;margin-right:5px}
+.contrib .val{text-align:right;font-variant-numeric:tabular-nums;color:var(--muted)}
+.contrib .imp{position:relative;height:14px}
+.contrib .imp i{position:absolute;top:0;height:14px;border-radius:2px;left:50%}
+.contrib .imp i.p{background:var(--strong)} .contrib .imp i.m{background:var(--weak)}
+ul{margin:0;padding:0}
+footer{margin-top:34px;padding-top:18px;border-top:1px solid var(--line);
+  color:var(--muted);font-size:12.5px}
+footer b{color:var(--ink)}
+.err{padding:40px 16px;text-align:center;color:var(--muted)}
+code{background:color-mix(in srgb,var(--ink) 8%,transparent);padding:1px 5px;border-radius:3px}
+.mrank{display:none}
+
+/* 手機：11 欄的表格在小螢幕上只能一直左右滑，改成一個類股一張卡片。
+   每格用 ::before 帶出欄位名稱，就不需要表頭了。 */
+@media(max-width:700px){
+  .wrap{padding:16px 10px 48px}
+  header h1{font-size:19px}
+  .tab{flex:1;text-align:center;padding:9px 8px;font-size:14px}
+  .card h2{padding:11px 13px}
+  .scroll{overflow-x:visible}
+  table,tbody,tr,td{display:block;width:auto}
+  thead{display:none}
+  tbody tr{position:relative;display:grid;grid-template-columns:1fr 1fr;
+    gap:4px 12px;margin:0 11px 9px;padding:11px 13px;
+    border:1px solid var(--line);border-radius:9px}
+  tbody tr:first-child{margin-top:11px}
+  tbody tr.on{border-color:var(--accent)}
+  td{border:0;padding:2px 0;text-align:left;white-space:normal}
+  td[data-l="#"],td[data-l="家數"]{display:none}
+  .mrank{display:inline-block;min-width:22px;color:var(--muted);
+    font-variant-numeric:tabular-nums;font-weight:400}
+  td[data-l="類股"]{grid-column:1/-1;font-size:16px;font-weight:600;
+    padding-right:52px}
+  td[data-l="分數"]{grid-column:1/-1;margin:3px 0 5px}
+  td[data-l="分數"] i{height:20px}
+  td[data-l="分數"] span{font-size:15px}
+  td[data-l="評等"]{position:absolute;top:11px;right:13px;padding:0}
+  td[data-m]::before{content:attr(data-l);display:block;font-size:10.5px;
+    color:var(--muted);line-height:1.4}
+  td[data-m]{font-variant-numeric:tabular-nums}
+  #detail .head{padding:13px}
+  .split>div{padding:13px}
+  .contrib li{grid-template-columns:1fr 50px 54px}
+  #detail .scroll{overflow-x:auto}
+  #detail table,#detail tbody,#detail tr,#detail td{display:revert}
+  #detail thead{display:table-header-group}
+  #detail tbody tr{border:0;border-radius:0;margin:0;padding:0;display:table-row}
+  #detail td{padding:9px 10px;text-align:right;border-bottom:1px solid var(--line)}
+  #detail td:nth-child(2){text-align:left}
+  #detail td::before{content:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1 id="title">類股輪動看板</h1>
+  <div class="asof" id="asof">載入中…</div>
+</header>
+
+<div class="tabs" id="markets" style="margin-top:16px"></div>
+<div class="tabs" id="tabs"></div>
+<div class="note" id="note"></div>
+
+<div class="grid">
+  <section class="card">
+    <h2 id="tableTitle">類股排名</h2>
+    <div class="scroll"><table>
+      <thead id="thead"></thead>
+      <tbody id="rows"></tbody>
+    </table></div>
+  </section>
+
+  <section class="card">
+    <h2>相對輪動位置（RRG）</h2>
+    <div id="rrg"></div>
+    <div class="legend">
+      <span><i class="q 領先"></i>領先：強且還在轉強</span>
+      <span><i class="q 轉弱"></i>轉弱：仍強但動能流失</span>
+      <span><i class="q 改善"></i>改善：仍弱但動能回升</span>
+      <span><i class="q 落後"></i>落後：弱且持續走弱</span>
+    </div>
+  </section>
+</div>
+
+<section class="card" id="detail" hidden></section>
+
+<footer>
+  <p><b>這是什麼</b>：把證交所公開資料整理成「哪些產業體質正在變好」的看板。
+  它不預測股價，也不是買賣建議——它只回答「基本面、籌碼、價格三個面向，
+  現在各自站在哪一邊」。</p>
+  <p><b>怎麼讀</b>：分數是 32 個類股之間的<b>相對排名百分位</b>（0～100），
+  不是絕對好壞。80 分代表「在這 32 個類股裡排前 20%」，不代表會漲。
+  點任一列可以看到分數是被哪些指標推上去或壓下來的。</p>
+  <p><b>資料來源</b>：臺灣證券交易所公開資料（OpenAPI 與每日收盤行情），
+  全部為官方一手資料。<span id="limits"></span></p>
+  <p><b>免責</b>：本頁為個人研究與教育用途，不構成投資建議。
+  資料可能有誤或延遲，投資決策請自行查證並自負盈虧。</p>
+</footer>
+</div>
+
+<script>
+const FMT = (v, unit='', d=1) =>
+  v === null || v === undefined ? '<span class="na">—</span>'
+  : `<span class="${v>0?'pos':v<0?'neg':''}">${v.toFixed(d)}${unit}</span>`;
+const PLAIN = (v, unit='', d=1) =>
+  v === null || v === undefined ? '<span class="na">—</span>' : v.toFixed(d)+unit;
+
+const MARKETS = {
+  tw: {label:'台股', file:'data/dashboard.json', title:'台股類股輪動看板'},
+  us: {label:'美股', file:'data/dashboard_us.json', title:'美股類股輪動看板'},
+};
+// 兩個市場可用的欄位不同：美股沒有等同三大法人的公開日資料，也沒有類股估值。
+const COLUMNS = {
+  tw: [['rev_yoy','月營收YoY','%',1],['op_margin','營益率','%',1],
+       ['roe','ROE','%',1],['pe','本益比','',1],
+       ['foreign_flow','外資買超','%',2],['excess_60','60日超額','%',1]],
+  us: [['rev_yoy','營收YoY','%',1],['net_margin','淨利率','%',1],
+       ['roe','ROE','%',1],['profit_breadth','獲利家數','%',0],
+       ['excess_60','60日超額','%',1]],
+};
+const NEUTRAL = new Set(['pe','profit_breadth']);
+
+let DATA = null, HORIZON = 'medium', SELECTED = null, MARKET = 'tw';
+const CACHE = {};
+
+function fail(e){
+  document.querySelector('.wrap').innerHTML =
+    `<div class="err"><h2>讀不到資料</h2>
+     <p>請先在專案資料夾執行 <code>update.cmd</code> 產生資料，
+     再用 <code>serve.cmd</code> 啟動本機伺服器開啟本頁。</p>
+     <p>直接用檔案總管雙擊 index.html 會因為瀏覽器安全限制讀不到 JSON。</p>
+     <p style="font-size:12px">（${e.message}）</p></div>`;
+}
+
+function loadMarket(key){
+  MARKET = key; SELECTED = null;
+  if (CACHE[key]) { DATA = CACHE[key]; init(); return Promise.resolve(); }
+  return fetch(MARKETS[key].file)
+    .then(r => { if(!r.ok) throw new Error(r.status); return r.json(); })
+    .then(d => { CACHE[key] = d; DATA = d; init(); })
+    .catch(fail);
+}
+loadMarket('tw');
+
+function init(){
+  const a = DATA.data_asof;
+  document.getElementById('title').textContent = MARKETS[MARKET].title;
+  document.title = MARKETS[MARKET].title;
+  document.getElementById('asof').innerHTML = MARKET === 'tw'
+    ? `股價 <b>${a.price}</b>　月營收 <b>${roc(a.revenue)}</b>　`+
+      `財報 <b>${roc_q(a.financials)}</b>　籌碼近 <b>${a.chip_days}</b> 個交易日`
+    : `價格 <b>${a.price}</b>　財報 <b>${a.financials}</b>　`+
+      `價格歷史 <b>${a.history_days}</b> 個交易日`;
+  document.getElementById('limits').textContent = MARKET === 'tw'
+    ? `價格歷史 ${a.history_days} 個交易日。上櫃公司計入營收、估值與家數，`+
+      `但季報與三大法人日資料在櫃買沒有開放端點，所以營益率／ROE 與籌碼面只採上市。`
+    : `資料來自 Yahoo Finance（11 檔 SPDR 類股 ETF 價格）與 SEC XBRL（財報）。`+
+      `類股歸屬用 SEC 的 SIC 代碼近似 GICS，邊界上會與 ETF 實際成分股有出入。`;
+
+  const mk = document.getElementById('markets');
+  mk.innerHTML = '';
+  for (const [k, m] of Object.entries(MARKETS)){
+    const b = document.createElement('button');
+    b.className = 'tab'; b.dataset.m = k; b.textContent = m.label;
+    b.setAttribute('aria-selected', k === MARKET);
+    b.onclick = () => loadMarket(k);
+    mk.appendChild(b);
+  }
+
+  const tabs = document.getElementById('tabs');
+  tabs.innerHTML = '';
+  for (const [k, h] of Object.entries(DATA.horizons)){
+    const b = document.createElement('button');
+    b.className = 'tab'; b.dataset.k = k;
+    b.innerHTML = `${h.label}<span style="opacity:.7;font-size:13px">（${h.range}）</span>`;
+    b.onclick = () => { HORIZON = k; render(); };
+    tabs.appendChild(b);
+  }
+  render();
+}
+
+const roc = m => m ? `民國${m.slice(0,3)}年${+m.slice(3)}月` : '—';
+const roc_q = q => q ? `民國${q.replace('Q','年累計至第')}季` : '—';
+
+function render(){
+  const h = DATA.horizons[HORIZON];
+  document.querySelectorAll('.tab').forEach(t =>
+    t.setAttribute('aria-selected', t.dataset.k === HORIZON));
+  document.getElementById('note').innerHTML =
+    `<b>${h.label}（${h.range}）</b>　${h.note}`;
+  document.getElementById('tableTitle').textContent =
+    `類股排名 — 依${h.label}分數排序`;
+
+  const list = [...DATA.sectors].sort(
+    (a,b) => b.scores[HORIZON].score - a.scores[HORIZON].score);
+
+  const cols = COLUMNS[MARKET];
+  document.getElementById('thead').innerHTML =
+    `<tr><th>#</th><th>類股</th><th>分數</th><th>評等</th>` +
+    cols.map(c => `<th>${c[1]}</th>`).join('') +
+    `<th>${MARKET === 'tw' ? '家數' : '成分'}</th></tr>`;
+
+  document.getElementById('rows').innerHTML = list.map(s => {
+    const sc = s.scores[HORIZON], r = s.raw;
+    const cells = cols.map(([k, label, unit, d]) =>
+      `<td data-l="${label}" data-m>${
+        NEUTRAL.has(k) ? PLAIN(r[k], unit, d) : FMT(r[k], unit, d)}</td>`).join('');
+    const count = MARKET === 'tw'
+      ? `<td class="rank" data-l="家數" title="上市 ${s.members_twse} + 上櫃 ${s.members_otc}"
+          >${s.members_twse}<span style="opacity:.55">+${s.members_otc}</span></td>`
+      : `<td class="rank" data-l="成分" title="${s.etf} · SEC 歸類 ${s.members} 家"
+          >${s.etf}</td>`;
+    return `<tr data-i="${s.industry}" class="${SELECTED===s.industry?'on':''}">
+      <td class="rank" data-l="#">${sc.rank}</td>
+      <td data-l="類股"><b class="mrank">${sc.rank}</b>${
+        s.quadrant?`<i class="q ${s.quadrant}" title="${s.quadrant}"></i>`:''}${s.industry}
+        ${sc.coverage < 80 ? `<span class="warn"
+          title="這個期間有 ${(100-sc.coverage).toFixed(0)}% 的指標權重缺資料，缺的部分一律以同業中位數計，分數會被拉向中間">資料 ${sc.coverage.toFixed(0)}%</span>` : ''}</td>
+      <td class="bar" data-l="分數"><i style="width:${sc.score}%"></i><span>${sc.score.toFixed(0)}</span></td>
+      <td data-l="評等"><span class="v ${sc.verdict}">${sc.verdict}</span></td>
+      ${cells}${count}
+    </tr>`;
+  }).join('');
+
+  document.querySelectorAll('#rows tr').forEach(tr =>
+    tr.onclick = () => {
+      SELECTED = SELECTED === tr.dataset.i ? null : tr.dataset.i;
+      render();
+    });
+
+  drawRRG(list);
+  drawDetail(list);
+}
+
+function drawRRG(list){
+  const pts = list.filter(s => s.rrg);
+  const box = document.getElementById('rrg');
+  if (!pts.length){
+    box.innerHTML = `<div class="err" style="padding:24px;font-size:13px">
+      價格歷史還不夠算 RRG，請先執行 <code>update.cmd</code> 回補更多交易日。</div>`;
+    return;
+  }
+  const xs = pts.map(p=>p.rrg.rs_ratio), ys = pts.map(p=>p.rrg.rs_momentum);
+  const pad = 0.6;
+  const x0 = Math.min(...xs)-pad, x1 = Math.max(...xs)+pad;
+  const y0 = Math.min(...ys)-pad, y1 = Math.max(...ys)+pad;
+  const W=400,H=360,M=30;
+  const sx = v => M + (v-x0)/(x1-x0)*(W-M*2);
+  const sy = v => H-M - (v-y0)/(y1-y0)*(H-M*2);
+
+  const marks = pts.map(p => {
+    const x = sx(p.rrg.rs_ratio), y = sy(p.rrg.rs_momentum);
+    const on = SELECTED === p.industry;
+    // tail 是扁平陣列 [x1,y1,x2,y2,...]
+    const t = p.rrg.tail, pts = [];
+    for (let i = 0; i + 1 < t.length; i += 2) pts.push(`${sx(t[i])},${sy(t[i+1])}`);
+    const tail = pts.join(' ');
+    return `<g class="pt" data-i="${p.industry}" style="cursor:pointer">
+      <polyline points="${tail}" fill="none" stroke="var(--${QC[p.quadrant]})"
+        stroke-width="1" opacity="${on?.85:.25}"/>
+      <circle cx="${x}" cy="${y}" r="${on?6:4}" fill="var(--${QC[p.quadrant]})"
+        opacity="${on?1:.8}"/>
+      <text x="${x+7}" y="${y+4}" font-size="${on?11:9.5}"
+        font-weight="${on?700:400}" fill="var(--ink)"
+        opacity="${on?1:.72}">${p.industry.replace(/(工業|業)$/,'')}</text>
+    </g>`;
+  }).join('');
+
+  box.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img"
+    aria-label="類股相對輪動四象限圖">
+    <rect x="${sx(100)}" y="${M}" width="${W-M-sx(100)}" height="${sy(100)-M}"
+      fill="var(--lead)" opacity=".05"/>
+    <rect x="${M}" y="${sy(100)}" width="${sx(100)-M}" height="${H-M-sy(100)}"
+      fill="var(--lag)" opacity=".05"/>
+    <line x1="${sx(100)}" y1="${M}" x2="${sx(100)}" y2="${H-M}"
+      stroke="var(--line)" stroke-dasharray="3 3"/>
+    <line x1="${M}" y1="${sy(100)}" x2="${W-M}" y2="${sy(100)}"
+      stroke="var(--line)" stroke-dasharray="3 3"/>
+    <text x="${W-M}" y="${M-8}" text-anchor="end" font-size="10"
+      fill="var(--muted)">相對強度 →</text>
+    <text x="${M}" y="${M-8}" font-size="10" fill="var(--muted)">↑ 動能</text>
+    ${marks}
+  </svg>`;
+
+  box.querySelectorAll('.pt').forEach(g =>
+    g.onclick = () => {
+      SELECTED = SELECTED === g.dataset.i ? null : g.dataset.i;
+      render();
+    });
+}
+const QC = {'領先':'lead','改善':'improve','轉弱':'weaken','落後':'lag'};
+
+function drawDetail(list){
+  const box = document.getElementById('detail');
+  const s = list.find(x => x.industry === SELECTED);
+  if (!s){ box.hidden = true; return; }
+  box.hidden = false;
+  const sc = s.scores[HORIZON];
+  // JSON 只存 [指標代號, z]，其餘從 metric_meta 與該期間的權重還原
+  const weights = DATA.horizons[HORIZON].weights;
+  const items = sc.contributions.map(([metric, z]) => ({
+    metric, z,
+    meta: DATA.metric_meta[metric],
+    raw: s.raw[metric],
+    impact: z * weights[metric],
+  }));
+  const max = Math.max(...items.map(c => Math.abs(c.impact)), 0.01);
+
+  const GN = {fundamental:'基本面',valuation:'估值',chips:'籌碼面',technical:'技術面'};
+  const contrib = items.map(c => {
+    const w = Math.abs(c.impact)/max*50;
+    return `<li>
+      <span class="n"><span class="g">${GN[c.meta.group]}</span>${c.meta.label}</span>
+      <span class="val">${c.raw ?? '—'}</span>
+      <span class="imp"><i class="${c.impact>=0?'p':'m'}"
+        style="${c.impact>=0?`left:50%;width:${w}%`:`left:${50-w}%;width:${w}%`}"></i></span>
+    </li>`;
+  }).join('');
+
+  const stocks = !s.top_stocks.length
+    ? `<p style="color:var(--muted);font-size:13px">${MARKET === 'us'
+        ? '美股版沒有個股清單：SEC 的財報資料沒有股價與市值，做不出可比的個股排序。'
+        : '此產業沒有足夠的個股資料。'}</p>`
+    : `<table style="font-size:13px">
+    <thead><tr><th>代號</th><th style="text-align:left">名稱</th>
+      <th>股價</th><th>營收YoY</th><th>EPS</th><th>PE</th><th>殖利率</th>
+      <th title="該檔營收占整個產業的比重">產業占比</th></tr></thead>
+    <tbody>${s.top_stocks.map(t=>`<tr style="cursor:default">
+      <td class="rank">${t.code}</td><td>${t.name}</td>
+      <td>${PLAIN(t.close,'',2)}</td><td>${FMT(t.rev_yoy,'%')}</td>
+      <td>${PLAIN(t.eps,'',2)}</td><td>${PLAIN(t.pe,'',1)}</td>
+      <td>${PLAIN(t.div_yield,'%',2)}</td>
+      <td class="rank">${PLAIN(t.rev_share,'%',1)}</td></tr>`).join('')}</tbody></table>`;
+
+  box.innerHTML = `
+    <div class="head">
+      <h3>${s.industry}　<span class="v ${sc.verdict}">${sc.verdict} ${sc.score.toFixed(0)} 分</span></h3>
+      <p>${DATA.horizons[HORIZON].label}排名第 ${sc.rank} / ${list.length}　·
+      ${MARKET === 'tw'
+        ? `成分股 ${s.members} 檔（上市 ${s.members_twse}、上櫃 ${s.members_otc}）`
+        : `代表 ETF ${s.etf}　·　SEC 歸類 ${s.members} 家`}　·
+      RRG 象限：${s.quadrant ?? '—'}　·　指標覆蓋率 ${sc.coverage}%</p>
+      ${MARKET === 'tw' && s.members_otc ? `<p style="font-size:12px;margin-top:5px">
+        上櫃公司計入營收、估值與家數；營益率／ROE 與籌碼面只採上市，
+        因為季報與三大法人日資料在櫃買沒有開放端點。</p>` : ''}
+      ${MARKET === 'us' ? `<p style="font-size:12px;margin-top:5px">
+        價格與 RRG 用的是 ${s.etf} 本身，這部分精確；基本面是用 SEC 的 SIC 代碼
+        近似 GICS 後彙總，與 ETF 實際成分股會有出入。</p>` : ''}
+    </div>
+    <div class="split">
+      <div>
+        <h4>分數是怎麼來的（往右為加分、往左為扣分）</h4>
+        <ul class="contrib">${contrib}</ul>
+      </div>
+      <div>
+        <h4>產業內基本面較突出的個股（觀察起點，非推薦）</h4>
+        <div class="scroll">${stocks}</div>
+      </div>
+    </div>`;
+}
+</script>
+</body>
+</html>
