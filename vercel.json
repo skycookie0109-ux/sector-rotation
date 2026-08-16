@@ -1,14 +1,10 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-
-  "// 說明": "這是純靜態網站。scripts/ 底下的 Python 只在本機或 GitHub Actions 產生 JSON，不在 Vercel 上執行。framework 設 null、build 與 install 都留空，可以擋掉 Vercel 的框架自動偵測——否則它看到 requirements.txt 會當成 Python 應用去找 app.py 而建置失敗。",
-
   "framework": null,
   "buildCommand": "",
   "installCommand": "",
   "outputDirectory": "web",
   "cleanUrls": true,
-
   "headers": [
     {
       "source": "/data/(.*)",

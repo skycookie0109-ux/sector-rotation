@@ -52,6 +52,15 @@ python scripts/build_us.py
 
 之後 `.github/workflows/update-data.yml` 會在每個平日台北時間 19:30 自動更新資料並 push，Vercel 收到 push 就會重新部署。也就是說網站會自己更新，你不用做任何事。
 
+### 部署設定的兩個坑
+
+**這是純靜態網站，不是 Python 應用。** `scripts/` 底下的 Python 只在本機和 GitHub Actions 執行，用來產生 `web/data/*.json`，不會在 Vercel 上跑。所以：
+
+1. `requirements.txt` 放在 `scripts/` 而不是根目錄。放根目錄會觸發 Vercel 的框架自動偵測，把專案當成 Python 應用去找 `app.py` 之類的入口點，然後建置失敗。
+2. `vercel.json` 用 `"framework": null` 搭配空的 `buildCommand` 與 `installCommand`，明確關掉建置流程，只把 `web/` 當靜態輸出。這一項是必要的——專案第一次匯入時 Vercel 若已經把框架記成 `python`，之後就算移走 `requirements.txt` 也不會自動改回來。
+
+另外 `vercel.json` **不接受任何額外的鍵**（schema 是 `additionalProperties: false`），連 `"// 註解"` 這種假鍵都會讓整份設定驗證失敗、所有設定被忽略。想寫說明就寫在這裡。
+
 ---
 
 ## 「短、中、長期」怎麼定義
