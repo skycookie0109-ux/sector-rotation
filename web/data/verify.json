@@ -1,9 +1,9 @@
 {
- "generated_at": "2026-08-17T11:55:39+08:00",
+ "generated_at": "2026-08-17T11:53:31+00:00",
  "status": "warn",
  "summary": {
-  "pass": 9,
-  "warn": 1,
+  "pass": 8,
+  "warn": 2,
   "fail": 0
  },
  "checks": [
@@ -44,7 +44,7 @@
    "group": "時效性",
    "label": "資料新鮮度（台股）",
    "status": "pass",
-   "detail": "股價 2026-08-14（3 天前）；月營收 11507",
+   "detail": "股價 2026-08-17（0 天前）；月營收 11507",
    "metric": {}
   },
   {
@@ -102,10 +102,10 @@
    "id": "continuity",
    "group": "連續性",
    "label": "與前次結果比較",
-   "status": "pass",
-   "detail": "沒有異常跳動（門檻 40 分）",
+   "status": "warn",
+   "detail": "1 項分數大幅跳動：台股 光電業 short 19→64",
    "metric": {
-    "jumps": 0
+    "jumps": 1
    }
   }
  ]
