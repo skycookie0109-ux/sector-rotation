@@ -204,6 +204,51 @@ th .hlp{vertical-align:0}
 #helpmask{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:49;display:none}
 @media(max-width:700px),(pointer:coarse){ #helpmask.show{display:block} }
 
+/* 資料驗證 */
+#verify{margin-top:18px}
+.vstat{float:right;font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;
+  letter-spacing:.03em;text-transform:none}
+.vstat.pass{background:color-mix(in srgb,var(--green) 16%,transparent);color:var(--green)}
+.vstat.warn{background:color-mix(in srgb,var(--weaken) 18%,transparent);color:var(--weaken)}
+.vstat.fail{background:color-mix(in srgb,var(--red) 18%,transparent);color:var(--red)}
+.vstat.none{background:color-mix(in srgb,var(--flat) 16%,transparent);color:var(--muted)}
+#vbody{padding:4px 0 6px}
+.vgrp{font-size:11px;color:var(--muted);letter-spacing:.06em;padding:11px 15px 4px;
+  font-weight:600}
+.vrow{display:grid;grid-template-columns:16px 1fr;gap:9px;padding:7px 15px;
+  align-items:start;border-bottom:1px solid var(--line)}
+.vrow:last-child{border-bottom:0}
+.vrow .dot{width:8px;height:8px;border-radius:50%;margin-top:6px}
+.vrow.pass .dot{background:var(--green)}
+.vrow.warn .dot{background:var(--weaken)}
+.vrow.fail .dot{background:var(--red)}
+.vrow .lbl{font-size:13.5px;font-weight:600}
+.vrow .det{font-size:12px;color:var(--muted);line-height:1.55;margin-top:1px}
+.vmeta{padding:9px 15px 2px;font-size:12px;color:var(--muted)}
+
+/* 免責聲明 */
+#foot{margin-top:22px;display:flex;flex-direction:column;gap:9px}
+.warnbox{margin:0;padding:13px 15px;border-radius:10px;font-size:12.5px;
+  line-height:1.72;color:var(--ink2,var(--muted));
+  background:color-mix(in srgb,var(--weaken) 8%,var(--card));
+  border-left:3px solid var(--weaken)}
+.warnbox b{color:var(--ink)}
+#foot .small{margin:0;padding:0 15px;font-size:11.5px;color:var(--muted);
+  line-height:1.7}
+
+#firstrun{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.45);
+  display:flex;align-items:center;justify-content:center;padding:18px}
+#firstrun[hidden]{display:none}
+.fr{background:var(--card);border-radius:14px;padding:22px 22px 18px;
+  max-width:430px;box-shadow:0 20px 50px -18px rgba(0,0,0,.5)}
+.fr h3{margin:0 0 11px;font-size:18px}
+.fr p{margin:0 0 11px;font-size:13.5px;line-height:1.75;color:var(--muted)}
+.fr p b{color:var(--ink)}
+.fr .small{font-size:12px}
+.fr button{width:100%;margin-top:5px;padding:11px;border:0;border-radius:9px;
+  background:var(--accent);color:#fff;font:inherit;font-size:14.5px;
+  font-weight:600;cursor:pointer}
+
 .err{padding:40px 16px;text-align:center;color:var(--muted)}
 code{background:color-mix(in srgb,var(--ink) 8%,transparent);padding:1px 5px;border-radius:3px}
 .mrank{display:none}
@@ -343,6 +388,37 @@ code{background:color-mix(in srgb,var(--ink) 8%,transparent);padding:1px 5px;bor
 
 <section class="card" id="detail" hidden></section>
 
+<section class="card" id="verify">
+  <h2>資料驗證<i class="hlp" data-help="verify" role="button" tabindex="0"
+    aria-label="說明">?</i>
+    <span class="vstat" id="vstat"></span></h2>
+  <div id="vbody"></div>
+</section>
+
+<footer id="foot">
+  <p class="warnbox"><b>投資有風險，本站資訊僅供參考。</b>
+    本網站所有內容<b>不構成任何投資建議、要約或招攬</b>，也不是買賣特定有價證券的推介。
+    資料來源為臺灣證券交易所、證券櫃檯買賣中心、公開資訊觀測站與美國 SEC 之公開資訊，
+    本站不保證其正確性、即時性或完整性。<b>過去績效不代表未來表現</b>，
+    依本站資訊所為之投資決策及其損益，均由使用者自行判斷並承擔。</p>
+  <p class="small">本站為個人非營利專案，未經營證券投資顧問業務，
+    亦不提供任何收費之投資諮詢服務。資料每個平日自動更新，
+    更新時點與正確性請見上方的資料驗證區塊。</p>
+</footer>
+
+<div id="firstrun" hidden>
+  <div class="fr">
+    <h3>開始之前</h3>
+    <p>這個看板整理的是<b>公開的財報與交易資料</b>，用來看哪些產業的基本面正在改善。
+      它<b>不預測短期漲跌，也不推薦任何個股</b>。</p>
+    <p>分數是<b>同一市場內的相對排名</b>——就算所有產業都在變差，
+      仍然會有大約五分之一被標成「強」。請把它當成研究的起點，不是買賣訊號。</p>
+    <p class="small">投資有風險，過去績效不代表未來表現。
+      依本站資訊所為之決策與損益由您自行承擔。</p>
+    <button type="button" id="frok">我了解了</button>
+  </div>
+</div>
+
 <footer>
   <p><b>這是什麼</b>：把證交所公開資料整理成「哪些產業體質正在變好」的看板。
   它不預測股價，也不是買賣建議——它只回答「基本面、籌碼、價格三個面向，
@@ -456,6 +532,16 @@ const HELP = {
     '用基本面預測一個月內的漲跌在資訊上是不成立的。' +
     '<br><b>中期（3 個月–2 年）</b>基本面主導，籌碼與技術面只作為「市場是否已經認同」的驗證。' +
     '<br><b>長期（2 年以上）</b>只看產業體質與估值，刻意不納入籌碼與短期技術面。'],
+  verify: ['資料驗證',
+    '沒有人能用肉眼確認上千檔個股的數字對不對，所以每次更新後都會自動跑一輪檢查，結果就顯示在這裡。' +
+    '<br><br><b>跨來源對帳</b>是其中最有價值的一項：同一個事實用兩個獨立系統各抓一次再比對——' +
+    '月營收同時取自證交所 OpenAPI 與公開資訊觀測站，季報也是。兩邊是不同的系統、不同的格式，' +
+    '如果解析邏輯錯了、單位換算錯了、或上游把欄位改名了，兩邊就會對不起來。' +
+    '<br><br>其餘四項是：<b>不變量</b>（排名必須是不重複的 1~N、百分位必須在 0~100）、' +
+    '<b>時效性</b>（各資料源是否符合自己的公告時程，抓得到「上游停更但照樣輸出舊資料」）、' +
+    '<b>連續性</b>（跟前一次比，分數暴衝通常是資料出問題而不是產業真的翻天覆地）、' +
+    '<b>覆蓋率</b>（多少指標真的有資料、多少個股歸不了類）。' +
+    '<br><br>驗證失敗時 GitHub Actions 會讓建置中斷，錯誤的資料不會被部署上來。'],
   hist: ['自身歷史位置',
     '這個數字目前落在<b>這個產業自己過去幾年區間</b>的第幾百分位。100 代表創下區間新高，0 代表區間新低。' +
     '<br><br>為什麼要這樣看：半導體營益率 40%、電子通路 2.5%，這不是體質差距，是通路業本來就低毛利高周轉。' +
@@ -606,6 +692,51 @@ function loadMarket(key, keepSearch){
   return fetchDashboard(key).then(d => { DATA = d; init(); }).catch(fail);
 }
 loadMarket('tw');
+
+/* ---------- 資料驗證狀態 ----------
+   驗證是後端跑的，這裡只負責把結果攤開給使用者看。使用者沒辦法自己核對
+   上千檔個股，至少要能一眼看到「最近一次檢查有沒有過、什麼時候檢查的」。 */
+const VSTAT = {pass:['通過','pass'], warn:['注意','warn'], fail:['異常','fail']};
+fetch('data/verify.json')
+  .then(r => r.ok ? r.json() : Promise.reject(r.status))
+  .then(v => {
+    const [word, cls] = VSTAT[v.status] || ['未知','none'];
+    const el = document.getElementById('vstat');
+    el.textContent = word;
+    el.className = 'vstat ' + cls;
+
+    const when = new Date(v.generated_at);
+    const ago = Math.round((Date.now() - when) / 36e5);
+    const groups = {};
+    for (const c of v.checks) (groups[c.group] ||= []).push(c);
+
+    document.getElementById('vbody').innerHTML =
+      `<p class="vmeta">最近一次檢查 ${when.toLocaleString('zh-TW',
+        {month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})}
+        （${ago < 1 ? '不到 1' : ago} 小時前）　·
+        通過 ${v.summary.pass}、注意 ${v.summary.warn}、異常 ${v.summary.fail}</p>` +
+      Object.entries(groups).map(([g, cs]) =>
+        `<div class="vgrp">${g}</div>` + cs.map(c =>
+          `<div class="vrow ${c.status}"><span class="dot"></span>
+            <span><span class="lbl">${c.label}</span>
+            <span class="det">${c.detail}</span></span></div>`).join('')).join('');
+  })
+  .catch(() => {
+    document.getElementById('vstat').className = 'vstat none';
+    document.getElementById('vstat').textContent = '尚未執行';
+    document.getElementById('vbody').innerHTML =
+      `<p class="vmeta">還沒有驗證結果。在專案資料夾執行
+       <code>update.cmd</code> 就會產生。</p>`;
+  });
+
+/* 首次進站的說明。只跳一次，之後記在瀏覽器裡。 */
+if (!localStorage.getItem('seen_notice')){
+  document.getElementById('firstrun').hidden = false;
+}
+document.getElementById('frok').onclick = () => {
+  localStorage.setItem('seen_notice', '1');
+  document.getElementById('firstrun').hidden = true;
+};
 
 function init(){
   const a = DATA.data_asof;

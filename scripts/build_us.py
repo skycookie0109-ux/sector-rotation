@@ -14,9 +14,11 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import us  # noqa: E402
-from build import excess_return, pct_rank, quadrant, robust_z, rrg, verdict  # noqa: E402
+from build import (LEVEL_METRICS, attach_history, excess_return,  # noqa: E402
+                   pct_rank, quadrant, robust_z, rrg, verdict)
 
 ROOT = Path(__file__).resolve().parent.parent
+HIST = ROOT / "data" / "history"
 OUT = ROOT / "web" / "data"
 OUT.mkdir(parents=True, exist_ok=True)
 
@@ -214,12 +216,27 @@ def main() -> None:
             "raw": raw, "rrg": rrg_data,
         }
 
+    # --- 水準型指標改成相對自身歷史（與台股同一套理由）
+    #
+    # 資訊科技淨利率 18.8%、必需消費 4.8%，這是商業模式差異不是體質差距。
+    # 跨類股比絕對值等於在獎勵產業屬性，所以淨利率與 ROE 改看「目前值落在
+    # 這個類股自己過去 7 年區間的第幾百分位」。
+    attach_history(sectors, HIST / "fin_history_us.csv",
+                   ("op_margin", "net_margin", "roe"))
+
     # --- 標準化與加權（與台股同一套）
     keys = list(sectors)
     z: dict[str, dict] = {}
     for metric, (_, direction, _) in METRICS.items():
         vals = {k: sectors[k]["raw"].get(metric) for k in keys}
-        for k, v in robust_z(vals).items():
+        zs = robust_z(vals)
+        for k in keys:
+            if metric in LEVEL_METRICS:
+                pct = sectors[k]["raw"].get(f"{metric}_pct")
+                if pct is not None:
+                    z.setdefault(k, {})[metric] = (pct - 50) / 25 * direction
+                    continue
+            v = zs.get(k)
             z.setdefault(k, {})[metric] = None if v is None else v * direction
 
     for hname, cfg in HORIZONS.items():

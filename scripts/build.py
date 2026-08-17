@@ -599,22 +599,25 @@ def _percentile(series: list[float], value: float) -> float:
     return round(100 * (below + 0.5 * equal) / len(others), 1)
 
 
-def attach_history(sectors: dict[str, dict]) -> None:
+def attach_history(sectors: dict[str, dict], path: Path | None = None,
+                   metrics: tuple[str, ...] | None = None) -> None:
     """讀入歷史序列，替每個水準型指標算出「相對自己歷史」的百分位。
 
-    同時把季報指標換成 TTM（近四季合計）。TTM 沒有季節性，也不需要原本
-    那套 4÷N 的年化假設——公開資訊觀測站的季報是累計數，年化係數要看季別，
-    對有淡旺季的產業本來就會失真。
-    """
-    fin = HIST / "fin_history.csv"
-    val = HIST / "val_history.csv"
+    不帶參數時是台股用法：同時讀季報與估值兩份歷史。帶參數時給美股重用，
+    因為美股只有季報歷史、沒有估值歷史。
 
-    def read(path, key_col, cols):
-        if not path.exists():
+    季報指標會順便換成 TTM（近四季合計）。TTM 沒有季節性，也不需要原本那套
+    4÷N 的年化假設——公開資訊觀測站的季報是累計數，年化係數要看季別，對有
+    淡旺季的產業本來就會失真。
+    """
+    def read(p: Path, cols):
+        if not p.exists():
             return {}
         out: dict[str, list[dict]] = {}
-        with path.open(encoding="utf-8") as fh:
-            for r in csv.DictReader(fh):
+        with p.open(encoding="utf-8") as fh:
+            reader = csv.DictReader(fh)
+            key_col = "quarter" if "quarter" in (reader.fieldnames or []) else "date"
+            for r in reader:
                 rec = {"k": r[key_col]}
                 for c in cols:
                     v = r.get(c, "")
@@ -624,22 +627,25 @@ def attach_history(sectors: dict[str, dict]) -> None:
             v.sort(key=lambda x: x["k"])
         return out
 
-    fin_h = read(fin, "quarter", ["op_margin", "net_margin", "roe"])
-    val_h = read(val, "date", ["pe", "pb", "div_yield"])
+    if path is not None:
+        sources = [(read(path, metrics), metrics)]
+    else:
+        fin = ("op_margin", "net_margin", "roe")
+        val = ("pe", "pb", "div_yield")
+        sources = [(read(HIST / "fin_history.csv", fin), fin),
+                   (read(HIST / "val_history.csv", val), val)]
 
     for key, s in sectors.items():
         raw = s["raw"]
-        for source, metrics in ((fin_h, ("op_margin", "net_margin", "roe")),
-                                (val_h, ("pe", "pb", "div_yield"))):
+        for source, ms in sources:
             series = source.get(key)
             if not series:
                 continue
-            for m in metrics:
+            for m in ms:
                 vals = [r[m] for r in series if r[m] is not None]
                 if len(vals) < MIN_HISTORY:
                     continue
                 cur = vals[-1]
-                # 季報指標改用 TTM 覆蓋原本的累計年化值；估值本來就同一套算法
                 raw[m] = round(cur, 2)
                 raw[f"{m}_pct"] = _percentile(vals, cur)
                 raw[f"{m}_lo"] = round(min(vals), 2)

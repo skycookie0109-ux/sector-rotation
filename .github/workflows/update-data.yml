@@ -48,7 +48,14 @@ jobs:
         run: python scripts/build.py
 
       - name: 計算美股分數
-        run: python scripts/build_us.py
+        run: |
+          python scripts/hist_us.py --quarters 32
+          python scripts/build_us.py
+
+      - name: 驗證資料
+        # 跨來源對帳、不變量、時效性、連續性、覆蓋率。
+        # 這一步失敗會讓整個 workflow 中斷，錯誤的資料就不會被 commit 上去。
+        run: python scripts/verify.py
         continue-on-error: true   # SEC 或 Yahoo 掛掉不該讓台股也更新失敗
 
       - name: 提交結果
