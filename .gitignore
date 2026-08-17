@@ -1,6 +1,10 @@
 # API 回應快取，可重新產生（會長到幾百 MB）
 data/cache/
 
+# 公開資訊觀測站的季報原始 HTML，每季 1.5 MB × 68 份。
+# 產出的 fin_history.csv 有進版控，這些原始檔不需要。
+data/history/cache/
+
 # 每次執行都會覆蓋的最新快照，不需要版控
 data/snapshot/
 

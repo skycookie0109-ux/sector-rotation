@@ -12,22 +12,32 @@ echo   Taiwan Sector Rotation - Update Data
 echo ============================================================
 echo.
 
-echo [1/4] Fetching market snapshots ...
+echo [1/6] Fetching market snapshots ...
 python scripts\fetch.py
 if errorlevel 1 goto fail
 echo.
 
-echo [2/4] Backfilling sector index history ...
+echo [2/6] Backfilling sector index history ...
 python scripts\backfill.py --days 900
 if errorlevel 1 goto fail
 echo.
 
-echo [3/4] Fetching institutional flows ...
+echo [3/6] Fetching institutional flows ...
 python scripts\chips.py --days 20
 if errorlevel 1 goto fail
 echo.
 
-echo [4/4] Computing rotation scores ...
+echo [4/6] Updating financial history ...
+python scripts\hist_fin.py --quarters 34
+if errorlevel 1 goto fail
+echo.
+
+echo [5/6] Updating valuation history ...
+python scripts\hist_val.py --months 96
+if errorlevel 1 goto fail
+echo.
+
+echo [6/6] Computing rotation scores ...
 python scripts\build.py
 if errorlevel 1 goto fail
 echo.

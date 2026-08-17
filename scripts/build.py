@@ -576,6 +576,77 @@ def pick_top_stocks(members: list[dict], n: int = 8) -> list[dict]:
     } for m in scored[:n]]
 
 
+# 「水準型」指標：絕對值高低主要反映商業模式，不反映景氣好壞。
+#
+# 半導體營益率 44%、電子通路 2.65%，這不是體質差距，是通路業本來就低毛利
+# 高周轉。拿 32 個類股互相排名，等於在獎勵產業屬性。同理金融股本益比天生
+# 低、成長股天生高。
+#
+# 所以這幾項改成跟「自己的歷史」比：目前值落在自身過去幾年區間的第幾百分位。
+# 其餘指標（營收年增、成長廣度、籌碼流向、超額報酬）本來就是變化量或流量，
+# 跨產業比較是合理的，維持原樣。
+LEVEL_METRICS = {"op_margin", "net_margin", "roe", "pe", "pb", "div_yield"}
+MIN_HISTORY = 8      # 少於這麼多期就不夠算百分位，退回跨產業比較
+
+
+def _percentile(series: list[float], value: float) -> float:
+    """value 在 series 裡的百分位。series 已含 value 本身。"""
+    others = [v for v in series if v is not None]
+    if len(others) < 2:
+        return 50.0
+    below = sum(1 for v in others if v < value)
+    equal = sum(1 for v in others if v == value)
+    return round(100 * (below + 0.5 * equal) / len(others), 1)
+
+
+def attach_history(sectors: dict[str, dict]) -> None:
+    """讀入歷史序列，替每個水準型指標算出「相對自己歷史」的百分位。
+
+    同時把季報指標換成 TTM（近四季合計）。TTM 沒有季節性，也不需要原本
+    那套 4÷N 的年化假設——公開資訊觀測站的季報是累計數，年化係數要看季別，
+    對有淡旺季的產業本來就會失真。
+    """
+    fin = HIST / "fin_history.csv"
+    val = HIST / "val_history.csv"
+
+    def read(path, key_col, cols):
+        if not path.exists():
+            return {}
+        out: dict[str, list[dict]] = {}
+        with path.open(encoding="utf-8") as fh:
+            for r in csv.DictReader(fh):
+                rec = {"k": r[key_col]}
+                for c in cols:
+                    v = r.get(c, "")
+                    rec[c] = float(v) if v not in ("", None) else None
+                out.setdefault(r["industry"], []).append(rec)
+        for v in out.values():
+            v.sort(key=lambda x: x["k"])
+        return out
+
+    fin_h = read(fin, "quarter", ["op_margin", "net_margin", "roe"])
+    val_h = read(val, "date", ["pe", "pb", "div_yield"])
+
+    for key, s in sectors.items():
+        raw = s["raw"]
+        for source, metrics in ((fin_h, ("op_margin", "net_margin", "roe")),
+                                (val_h, ("pe", "pb", "div_yield"))):
+            series = source.get(key)
+            if not series:
+                continue
+            for m in metrics:
+                vals = [r[m] for r in series if r[m] is not None]
+                if len(vals) < MIN_HISTORY:
+                    continue
+                cur = vals[-1]
+                # 季報指標改用 TTM 覆蓋原本的累計年化值；估值本來就同一套算法
+                raw[m] = round(cur, 2)
+                raw[f"{m}_pct"] = _percentile(vals, cur)
+                raw[f"{m}_lo"] = round(min(vals), 2)
+                raw[f"{m}_hi"] = round(max(vals), 2)
+                raw[f"{m}_n"] = len(vals)
+
+
 # ---------------------------------------------------------------- 合成分數
 def score(sectors: dict[str, dict]) -> None:
     keys = list(sectors)
@@ -584,6 +655,13 @@ def score(sectors: dict[str, dict]) -> None:
         vals = {k: sectors[k]["raw"].get(metric) for k in keys}
         zs = robust_z(vals)
         for k in keys:
+            if metric in LEVEL_METRICS:
+                # 有足夠歷史就用「相對自己歷史」的百分位，換算成與 z 分數
+                # 相同的尺度（50 百分位 -> 0，兩端約 ±2）。
+                pct = sectors[k]["raw"].get(f"{metric}_pct")
+                if pct is not None:
+                    z.setdefault(k, {})[metric] = (pct - 50) / 25 * direction
+                    continue
             v = zs.get(k)
             z.setdefault(k, {})[metric] = None if v is None else v * direction
 
@@ -680,6 +758,7 @@ def main() -> None:
 
     print("彙總產業…")
     sectors = aggregate(stocks, index_hist, chips)
+    attach_history(sectors)
     score(sectors)
 
     rev_month = next((s.get("rev_month") for s in stocks.values()

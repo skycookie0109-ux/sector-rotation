@@ -36,6 +36,14 @@ jobs:
       - name: 抓取三大法人
         run: python scripts/chips.py --days 20
 
+      - name: 更新歷史季報
+        # 水準型指標要跟自己的歷史比，所以要維護一份長期序列。
+        # 已下載的季度會沿用快取，每天只會實際抓新公布的那一季。
+        run: python scripts/hist_fin.py --quarters 34
+
+      - name: 更新歷史估值
+        run: python scripts/hist_val.py --months 96
+
       - name: 計算台股分數
         run: python scripts/build.py
 

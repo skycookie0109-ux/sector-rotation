@@ -208,44 +208,54 @@ th .hlp{vertical-align:0}
 code{background:color-mix(in srgb,var(--ink) 8%,transparent);padding:1px 5px;border-radius:3px}
 .mrank{display:none}
 
-/* 手機：11 欄的表格在小螢幕上只能一直左右滑，改成一個類股一張卡片。
-   每格用 ::before 帶出欄位名稱，就不需要表頭了。 */
+/* 手機：重點卡。不畫外框，改用左側色條與淺色底來分隔——32 個全邊框方塊
+   疊起來只會變成一片方格噪音。大分數當視覺錨點，只露兩個關鍵指標，
+   其餘收在展開區。 */
+#cards{display:none}
+.mcard{position:relative;overflow:hidden;background:var(--card);
+  border-radius:12px;padding:12px 14px;margin:0 10px 8px;
+  box-shadow:0 1px 2px rgba(0,0,0,.05)}
+.mcard:first-child{margin-top:10px}
+.mcard::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px}
+/* 左側色條沿用評等的紅綠語意，強度隨等級遞減；中性用灰不用彩色 */
+.mcard.b0::before{background:var(--strong)}
+.mcard.b1::before{background:color-mix(in srgb,var(--strong) 55%,var(--flat))}
+.mcard.b2::before{background:var(--flat)}
+.mcard.b3::before{background:color-mix(in srgb,var(--weak) 55%,var(--flat))}
+.mcard.b4::before{background:var(--weak)}
+.mcard.on{box-shadow:0 0 0 1.5px var(--accent),0 4px 14px -6px rgba(0,0,0,.25)}
+.mcard .top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.mcard .ttl{display:flex;flex-direction:column;gap:3px;min-width:0}
+.mcard .ttl .t{font-size:15.5px;font-weight:600;letter-spacing:-.01em}
+.mcard .ttl .sub{font-size:11.5px;color:var(--muted);display:flex;
+  align-items:center;gap:5px;flex-wrap:wrap}
+.mcard .big{font-size:27px;font-weight:700;line-height:1;text-align:right;
+  font-variant-numeric:tabular-nums;letter-spacing:-.02em;flex:none}
+.mcard .big small{display:block;font-size:10.5px;font-weight:600;
+  color:var(--muted);margin-top:5px;letter-spacing:.06em}
+.mcard .kpi{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:11px}
+.mcard .box{background:color-mix(in srgb,var(--ink) 4%,transparent);
+  border-radius:8px;padding:7px 9px;display:flex;flex-direction:column;gap:2px;
+  min-width:0}
+.mcard .box .k{font-size:10.5px;color:var(--muted);display:flex;
+  align-items:center;gap:2px}
+.mcard .box .v{font-size:15px;font-weight:700;font-variant-numeric:tabular-nums}
+.mcard .hist{font-size:9.5px;color:var(--muted);opacity:.85;line-height:1.3}
+.mcard .more{width:100%;margin-top:9px;padding:7px;border:0;border-radius:7px;
+  background:transparent;color:var(--accent);font:inherit;font-size:12.5px;
+  font-weight:600;cursor:pointer;display:flex;align-items:center;
+  justify-content:center;gap:5px;-webkit-tap-highlight-color:transparent}
+.mcard .restwrap{border-top:1px solid var(--line);margin-top:2px;padding-top:9px}
+
 @media(max-width:700px){
-  .wrap{padding:16px 10px 48px}
+  .wrap{padding:16px 8px 48px}
   header h1{font-size:19px}
   .tab{flex:1;text-align:center;padding:9px 8px;font-size:14px}
   .card h2{padding:11px 13px}
-  .scroll{overflow-x:visible}
-  table,tbody,tr,td{display:block;width:auto}
-  thead{display:none}
-  tbody tr{position:relative;display:grid;grid-template-columns:1fr 1fr;
-    gap:4px 12px;margin:0 11px 9px;padding:11px 13px;
-    border:1px solid var(--line);border-radius:9px}
-  tbody tr:first-child{margin-top:11px}
-  tbody tr.on{border-color:var(--accent)}
-  td{border:0;padding:2px 0;text-align:left;white-space:normal}
-  td[data-l="#"],td[data-l="家數"]{display:none}
-  .mrank{display:inline-block;min-width:22px;color:var(--muted);
-    font-variant-numeric:tabular-nums;font-weight:400}
-  td[data-l="類股"]{grid-column:1/-1;font-size:16px;font-weight:600;
-    padding-right:52px}
-  td[data-l="分數"]{grid-column:1/-1;margin:3px 0 5px}
-  td[data-l="分數"] i{height:20px}
-  td[data-l="分數"] span{font-size:15px}
-  td[data-l="評等"]{position:absolute;top:11px;right:13px;padding:0}
-  td[data-m]::before{content:attr(data-l);display:block;font-size:10.5px;
-    color:var(--muted);line-height:1.4}
-  td[data-m]{font-variant-numeric:tabular-nums}
+  #cards{display:block}
   #detail .head{padding:13px}
   .split>div{padding:13px}
   .contrib li{grid-template-columns:1fr 50px 54px}
-  #detail .scroll{overflow-x:auto}
-  #detail table,#detail tbody,#detail tr,#detail td{display:revert}
-  #detail thead{display:table-header-group}
-  #detail tbody tr{border:0;border-radius:0;margin:0;padding:0;display:table-row}
-  #detail td{padding:9px 10px;text-align:right;border-bottom:1px solid var(--line)}
-  #detail td:nth-child(2){text-align:left}
-  #detail td::before{content:none}
 }
 </style>
 </head>
@@ -293,7 +303,8 @@ code{background:color-mix(in srgb,var(--ink) 8%,transparent);padding:1px 5px;bor
 <div class="grid">
   <section class="card">
     <h2 id="tableTitle">類股排名</h2>
-    <div class="scroll"><table>
+    <div id="cards"></div>
+    <div class="scroll" id="tableWrap"><table>
       <thead id="thead"></thead>
       <tbody id="rows"></tbody>
     </table></div>
@@ -445,6 +456,12 @@ const HELP = {
     '用基本面預測一個月內的漲跌在資訊上是不成立的。' +
     '<br><b>中期（3 個月–2 年）</b>基本面主導，籌碼與技術面只作為「市場是否已經認同」的驗證。' +
     '<br><b>長期（2 年以上）</b>只看產業體質與估值，刻意不納入籌碼與短期技術面。'],
+  hist: ['自身歷史位置',
+    '這個數字目前落在<b>這個產業自己過去幾年區間</b>的第幾百分位。100 代表創下區間新高，0 代表區間新低。' +
+    '<br><br>為什麼要這樣看：半導體營益率 40%、電子通路 2.5%，這不是體質差距，是通路業本來就低毛利高周轉。' +
+    '拿 32 個類股的絕對值互相排名，等於在獎勵產業屬性而不是「現在正在變好」。' +
+    '<br><br>所以<b>營益率、淨利率、ROE、本益比、股價淨值比、殖利率</b>這幾項是跟自己的歷史比；' +
+    '營收成長、籌碼流向、超額報酬這些本來就是變化量，維持跨產業比較。'],
   lookup: ['個股反查',
     '輸入股票代號或公司名稱，查它屬於哪一個類股。<b>台股與美股會一起搜尋</b>，' +
     '點下去會自動切換到對應的市場並跳到該類股。' +
@@ -654,38 +671,117 @@ function render(){
     cols.map(c => `<th>${c[1]}${HB(c[0])}</th>`).join('') +
     `<th>${MARKET === 'tw' ? `家數${HB('members')}` : `成分${HB('etf')}`}</th></tr>`;
 
-  document.getElementById('rows').innerHTML = list.map(s => {
-    const sc = s.scores[HORIZON], r = s.raw;
-    const cells = cols.map(([k, label, unit, d]) =>
-      `<td data-l="${label}" data-m>${
-        NEUTRAL.has(k) ? PLAIN(r[k], unit, d) : FMT(r[k], unit, d)}</td>`).join('');
-    const count = MARKET === 'tw'
-      ? `<td class="rank" data-l="家數" title="上市 ${s.members_twse} + 上櫃 ${s.members_otc}"
-          >${s.members_twse}<span style="opacity:.55">+${s.members_otc}</span></td>`
-      : `<td class="rank" data-l="成分" title="${s.etf} · SEC 歸類 ${s.members} 家"
-          >${s.etf}</td>`;
-    return `<tr data-i="${s.industry}" class="${SELECTED===s.industry?'on':''}">
-      <td class="rank" data-l="#">${sc.rank}</td>
-      <td data-l="類股"><b class="mrank">${sc.rank}</b>${
-        s.quadrant?`<i class="q ${s.quadrant}" title="${s.quadrant}"></i>`:''}${s.industry}
-        ${sc.coverage < 80 ? `<span class="warn"
-          title="這個期間有 ${(100-sc.coverage).toFixed(0)}% 的指標權重缺資料，缺的部分一律以同業中位數計，分數會被拉向中間">資料 ${sc.coverage.toFixed(0)}%</span>` : ''}</td>
-      <td class="bar" data-l="分數"><i style="width:${sc.score}%"></i><span>${sc.score.toFixed(0)}</span></td>
-      <td data-l="評等"><span class="v ${sc.verdict}">${sc.verdict}</span></td>
-      ${cells}${count}
-    </tr>`;
-  }).join('');
-
-  document.querySelectorAll('#rows tr').forEach(tr =>
-    tr.onclick = () => {
-      SELECTED = SELECTED === tr.dataset.i ? null : tr.dataset.i;
-      render();
-    });
+  if (MOBILE.matches) renderCards(list, cols);
+  else renderTable(list, cols);
 
   drawQuadrants(list);
   drawRRG(list);
   drawMotion(list);
   drawDetail(list);
+}
+
+/* ---------- 清單：桌機用表格，手機用重點卡 ----------
+   不是用 CSS 把表格「變成」卡片——那樣指標名稱只能靠 td::before 產生，是
+   CSS 生成內容，沒辦法掛說明鈕。手機使用者因此完全看不到指標說明。
+   所以兩種版型各自產生自己的 DOM。 */
+const MOBILE = matchMedia('(max-width:700px)');
+// 兩種都聽：change 是正規做法，但有些環境（螢幕轉向、瀏覽器縮放）不一定
+// 送得出來，補一個 resize 並自己比對上次狀態，只在真的跨過斷點時重繪。
+let wasMobile = MOBILE.matches;
+const onBreakpoint = () => {
+  if (MOBILE.matches === wasMobile) return;
+  wasMobile = MOBILE.matches;
+  if (DATA) render();
+};
+MOBILE.addEventListener('change', onBreakpoint);
+addEventListener('resize', onBreakpoint);
+
+function renderTable(list, cols){
+  document.getElementById('cards').innerHTML = '';
+  document.getElementById('tableWrap').hidden = false;
+  document.getElementById('rows').innerHTML = list.map(s => {
+    const sc = s.scores[HORIZON], r = s.raw;
+    const cells = cols.map(([k, label, unit, d]) =>
+      `<td>${NEUTRAL.has(k) ? PLAIN(r[k], unit, d) : FMT(r[k], unit, d)}</td>`).join('');
+    const count = MARKET === 'tw'
+      ? `<td class="rank" title="上市 ${s.members_twse} + 上櫃 ${s.members_otc}"
+          >${s.members_twse}<span style="opacity:.55">+${s.members_otc}</span></td>`
+      : `<td class="rank" title="${s.etf} · SEC 歸類 ${s.members} 家">${s.etf}</td>`;
+    return `<tr data-i="${s.industry}" class="${SELECTED===s.industry?'on':''}">
+      <td class="rank">${sc.rank}</td>
+      <td>${s.quadrant?`<i class="q ${s.quadrant}" title="${s.quadrant}"></i>`:''}${s.industry}
+        ${sc.coverage < 80 ? `<span class="warn"
+          title="這個期間有 ${(100-sc.coverage).toFixed(0)}% 的指標權重缺資料，缺的部分一律以同業中位數計，分數會被拉向中間">資料 ${sc.coverage.toFixed(0)}%</span>` : ''}</td>
+      <td class="bar"><i style="width:${sc.score}%"></i><span>${sc.score.toFixed(0)}</span></td>
+      <td><span class="v ${sc.verdict}">${sc.verdict}</span></td>
+      ${cells}${count}
+    </tr>`;
+  }).join('');
+  document.querySelectorAll('#rows tr').forEach(tr => tr.onclick = () => {
+    SELECTED = SELECTED === tr.dataset.i ? null : tr.dataset.i;
+    render();
+  });
+}
+
+const BAND = v => v==='強'?0 : v==='偏強'?1 : v==='中性'?2 : v==='偏弱'?3 : 4;
+
+// 水準型指標會附上「相對自己歷史」的位置，這是分數怎麼來的關鍵資訊
+function histNote(r, k){
+  const p = r[k + '_pct'];
+  if (p == null) return '';
+  const yrs = k === 'pe' || k === 'pb' || k === 'div_yield'
+    ? Math.round(r[k + '_n'] / 12) : Math.round(r[k + '_n'] / 4);
+  return `<span class="hist" data-help="hist">自身 ${yrs} 年第 ${Math.round(p)} 位</span>`;
+}
+
+function renderCards(list, cols){
+  document.getElementById('tableWrap').hidden = true;
+  const kpi = MARKET === 'tw'
+    ? [cols[0], cols[2]]            // 月營收YoY、ROE
+    : [cols[0], cols[1]];           // 營收YoY、淨利率
+  const rest = cols.filter(c => !kpi.includes(c));
+
+  document.getElementById('cards').innerHTML = list.map(s => {
+    const sc = s.scores[HORIZON], r = s.raw;
+    // FMT 自己會依正負套 .pos/.neg，這裡不必再判一次
+    const cell = ([k, label, unit, d]) =>
+      `<div class="box"><span class="k">${label}${HB(k)}</span>
+        <span class="v">${NEUTRAL.has(k) ? PLAIN(r[k], unit, d)
+                                         : FMT(r[k], unit, d)}</span>
+        ${histNote(r, k)}</div>`;
+    const open = SELECTED === s.industry;
+    return `<article class="mcard b${BAND(sc.verdict)} ${open?'on':''}" data-i="${s.industry}">
+      <div class="top">
+        <div class="ttl">
+          <span class="t">${s.industry}</span>
+          <span class="sub">${s.quadrant
+            ? `<i class="q ${s.quadrant}"></i>${s.quadrant} · ` : ''}${
+            MARKET === 'tw' ? `${s.members_twse}+${s.members_otc} 家`
+                            : `${s.etf} · ${s.members} 家`}${
+            sc.coverage < 80 ? ` · 資料 ${sc.coverage.toFixed(0)}%` : ''}</span>
+        </div>
+        <div class="big">${sc.score.toFixed(0)}<small>${sc.verdict}</small></div>
+      </div>
+      <div class="kpi">${kpi.map(cell).join('')}</div>
+      <button class="more" type="button">${open ? '收合' : `全部 ${cols.length} 項指標`}
+        <span class="cv">${open ? '▴' : '▾'}</span></button>
+      ${open ? `<div class="restwrap"><div class="kpi rest">${
+        rest.map(cell).join('')}</div></div>` : ''}
+    </article>`;
+  }).join('');
+
+  document.querySelectorAll('#cards .mcard').forEach(c => {
+    c.querySelector('.more').onclick = e => {
+      e.stopPropagation();
+      SELECTED = SELECTED === c.dataset.i ? null : c.dataset.i;
+      render();
+    };
+    c.onclick = e => {
+      if (e.target.closest('[data-help]')) return;
+      SELECTED = SELECTED === c.dataset.i ? null : c.dataset.i;
+      render();
+    };
+  });
 }
 
 /* ---------- 時間軸輪動圖 ----------
