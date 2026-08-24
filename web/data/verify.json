@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-08-21T11:56:04+00:00",
+ "generated_at": "2026-08-24T11:57:25+00:00",
  "status": "warn",
  "summary": {
   "pass": 8,
@@ -23,9 +23,9 @@
    "group": "跨來源對帳",
    "label": "季報營收（證交所 vs 公開資訊觀測站）",
    "status": "pass",
-   "detail": "980 家可對照，0 家不一致（0.00%）",
+   "detail": "983 家可對照，0 家不一致（0.00%）",
    "metric": {
-    "compared": 980,
+    "compared": 983,
     "mismatch": 0
    }
   },
@@ -44,7 +44,7 @@
    "group": "時效性",
    "label": "資料新鮮度（台股）",
    "status": "pass",
-   "detail": "股價 2026-08-21（0 天前）；月營收 11507",
+   "detail": "股價 2026-08-24（0 天前）；月營收 11507",
    "metric": {}
   },
   {
@@ -73,7 +73,7 @@
    "group": "時效性",
    "label": "資料新鮮度（美股）",
    "status": "pass",
-   "detail": "股價 2026-08-20（1 天前）",
+   "detail": "股價 2026-08-21（3 天前）",
    "metric": {}
   },
   {
@@ -103,9 +103,9 @@
    "group": "連續性",
    "label": "與前次結果比較",
    "status": "warn",
-   "detail": "2 項分數大幅跳動：台股 鋼鐵工業 short 74→29；美股 通訊服務 short 30→70",
+   "detail": "1 項分數大幅跳動：美股 公用事業 short 80→30",
    "metric": {
-    "jumps": 2
+    "jumps": 1
    }
   }
  ]
