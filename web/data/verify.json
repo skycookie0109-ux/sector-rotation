@@ -1,9 +1,9 @@
 {
- "generated_at": "2026-08-28T21:29:55+00:00",
+ "generated_at": "2026-09-01T15:32:54+00:00",
  "status": "warn",
  "summary": {
-  "pass": 8,
-  "warn": 2,
+  "pass": 7,
+  "warn": 3,
   "fail": 0
  },
  "checks": [
@@ -11,21 +11,18 @@
    "id": "recon_rev",
    "group": "跨來源對帳",
    "label": "月營收（證交所 vs 公開資訊觀測站）",
-   "status": "pass",
-   "detail": "991 家可對照，0 家不一致（0.00%）",
-   "metric": {
-    "compared": 991,
-    "mismatch": 0
-   }
+   "status": "warn",
+   "detail": "只有 3 家能對照，樣本太少無法判斷",
+   "metric": {}
   },
   {
    "id": "recon_q",
    "group": "跨來源對帳",
    "label": "季報營收（證交所 vs 公開資訊觀測站）",
    "status": "pass",
-   "detail": "1,017 家可對照，0 家不一致（0.00%）",
+   "detail": "1,048 家可對照，0 家不一致（0.00%）",
    "metric": {
-    "compared": 1017,
+    "compared": 1048,
     "mismatch": 0
    }
   },
@@ -44,7 +41,7 @@
    "group": "時效性",
    "label": "資料新鮮度（台股）",
    "status": "pass",
-   "detail": "股價 2026-08-28（0 天前）；月營收 11507",
+   "detail": "股價 2026-09-01（0 天前）；月營收 11507",
    "metric": {}
   },
   {
@@ -73,7 +70,7 @@
    "group": "時效性",
    "label": "資料新鮮度（美股）",
    "status": "pass",
-   "detail": "股價 2026-08-28（0 天前）",
+   "detail": "股價 2026-09-01（0 天前）",
    "metric": {}
   },
   {
@@ -92,10 +89,10 @@
    "group": "覆蓋率",
    "label": "個股產業歸類",
    "status": "pass",
-   "detail": "1,943 檔中有 118 檔歸在「其他」（6.1%）",
+   "detail": "1,091 檔中有 52 檔歸在「其他」（4.8%）",
    "metric": {
-    "total": 1943,
-    "other": 118
+    "total": 1091,
+    "other": 52
    }
   },
   {
@@ -103,9 +100,9 @@
    "group": "連續性",
    "label": "與前次結果比較",
    "status": "warn",
-   "detail": "4 項分數大幅跳動：台股 半導體業 short 3→77；台股 化學工業 short 48→97；台股 水泥工業 short 71→23；美股 非必需消費 short 10→50",
+   "detail": "5 項分數大幅跳動：台股 生技醫療業 short 58→6；台股 運動休閒 short 0→48；台股 水泥工業 short 23→71；美股 必需消費 short 10→50",
    "metric": {
-    "jumps": 4
+    "jumps": 5
    }
   }
  ]
