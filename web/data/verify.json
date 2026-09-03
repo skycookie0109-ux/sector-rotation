@@ -1,9 +1,9 @@
 {
- "generated_at": "2026-09-02T15:16:50+00:00",
+ "generated_at": "2026-09-03T15:10:14+00:00",
  "status": "warn",
  "summary": {
-  "pass": 7,
-  "warn": 3,
+  "pass": 8,
+  "warn": 2,
   "fail": 0
  },
  "checks": [
@@ -12,7 +12,7 @@
    "group": "跨來源對帳",
    "label": "月營收（證交所 vs 公開資訊觀測站）",
    "status": "warn",
-   "detail": "只有 25 家能對照，樣本太少無法判斷",
+   "detail": "只有 49 家能對照，樣本太少無法判斷",
    "metric": {}
   },
   {
@@ -41,7 +41,7 @@
    "group": "時效性",
    "label": "資料新鮮度（台股）",
    "status": "pass",
-   "detail": "股價 2026-09-02（0 天前）；月營收 11507",
+   "detail": "股價 2026-09-03（0 天前）；月營收 11507",
    "metric": {}
   },
   {
@@ -70,7 +70,7 @@
    "group": "時效性",
    "label": "資料新鮮度（美股）",
    "status": "pass",
-   "detail": "股價 2026-09-02（0 天前）",
+   "detail": "股價 2026-09-03（0 天前）",
    "metric": {}
   },
   {
@@ -89,20 +89,20 @@
    "group": "覆蓋率",
    "label": "個股產業歸類",
    "status": "pass",
-   "detail": "1,107 檔中有 53 檔歸在「其他」（4.8%）",
+   "detail": "1,127 檔中有 54 檔歸在「其他」（4.8%）",
    "metric": {
-    "total": 1107,
-    "other": 53
+    "total": 1127,
+    "other": 54
    }
   },
   {
    "id": "continuity",
    "group": "連續性",
    "label": "與前次結果比較",
-   "status": "warn",
-   "detail": "1 項分數大幅跳動：台股 水泥工業 short 71→26",
+   "status": "pass",
+   "detail": "沒有異常跳動（門檻 40 分）",
    "metric": {
-    "jumps": 1
+    "jumps": 0
    }
   }
  ]
