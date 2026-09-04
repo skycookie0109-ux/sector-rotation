@@ -1,9 +1,9 @@
 {
- "generated_at": "2026-09-03T15:10:14+00:00",
+ "generated_at": "2026-09-04T15:05:06+00:00",
  "status": "warn",
  "summary": {
-  "pass": 8,
-  "warn": 2,
+  "pass": 7,
+  "warn": 3,
   "fail": 0
  },
  "checks": [
@@ -12,7 +12,7 @@
    "group": "跨來源對帳",
    "label": "月營收（證交所 vs 公開資訊觀測站）",
    "status": "warn",
-   "detail": "只有 49 家能對照，樣本太少無法判斷",
+   "detail": "只有 110 家能對照，樣本太少無法判斷",
    "metric": {}
   },
   {
@@ -41,7 +41,7 @@
    "group": "時效性",
    "label": "資料新鮮度（台股）",
    "status": "pass",
-   "detail": "股價 2026-09-03（0 天前）；月營收 11507",
+   "detail": "股價 2026-09-04（0 天前）；月營收 11507",
    "metric": {}
   },
   {
@@ -70,7 +70,7 @@
    "group": "時效性",
    "label": "資料新鮮度（美股）",
    "status": "pass",
-   "detail": "股價 2026-09-03（0 天前）",
+   "detail": "股價 2026-09-04（0 天前）",
    "metric": {}
   },
   {
@@ -89,20 +89,20 @@
    "group": "覆蓋率",
    "label": "個股產業歸類",
    "status": "pass",
-   "detail": "1,127 檔中有 54 檔歸在「其他」（4.8%）",
+   "detail": "1,173 檔中有 56 檔歸在「其他」（4.8%）",
    "metric": {
-    "total": 1127,
-    "other": 54
+    "total": 1173,
+    "other": 56
    }
   },
   {
    "id": "continuity",
    "group": "連續性",
    "label": "與前次結果比較",
-   "status": "pass",
-   "detail": "沒有異常跳動（門檻 40 分）",
+   "status": "warn",
+   "detail": "2 項分數大幅跳動：台股 其他電子業 short 23→74；台股 電機機械 short 3→61",
    "metric": {
-    "jumps": 0
+    "jumps": 2
    }
   }
  ]
