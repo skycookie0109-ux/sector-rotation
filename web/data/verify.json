@@ -1,19 +1,22 @@
 {
- "generated_at": "2026-09-08T15:16:32+00:00",
- "status": "warn",
+ "generated_at": "2026-09-09T15:16:29+00:00",
+ "status": "fail",
  "summary": {
   "pass": 8,
-  "warn": 2,
-  "fail": 0
+  "warn": 1,
+  "fail": 1
  },
  "checks": [
   {
    "id": "recon_rev",
    "group": "跨來源對帳",
    "label": "月營收（證交所 vs 公開資訊觀測站）",
-   "status": "warn",
-   "detail": "只有 449 家能對照，樣本太少無法判斷",
-   "metric": {}
+   "status": "fail",
+   "detail": "636 家可對照，610 家不一致（95.91%）；例：2836 575,211 vs 422,855、1213 32,555 vs 40,028、2408 43,867,609 vs 44,690,268",
+   "metric": {
+    "compared": 636,
+    "mismatch": 610
+   }
   },
   {
    "id": "recon_q",
@@ -41,7 +44,7 @@
    "group": "時效性",
    "label": "資料新鮮度（台股）",
    "status": "pass",
-   "detail": "股價 2026-09-08（0 天前）；月營收 11507",
+   "detail": "股價 2026-09-09（0 天前）；月營收 11507",
    "metric": {}
   },
   {
@@ -70,7 +73,7 @@
    "group": "時效性",
    "label": "資料新鮮度（美股）",
    "status": "pass",
-   "detail": "股價 2026-09-08（0 天前）",
+   "detail": "股價 2026-09-09（0 天前）",
    "metric": {}
   },
   {
@@ -89,10 +92,10 @@
    "group": "覆蓋率",
    "label": "個股產業歸類",
    "status": "pass",
-   "detail": "1,492 檔中有 70 檔歸在「其他」（4.7%）",
+   "detail": "1,662 檔中有 88 檔歸在「其他」（5.3%）",
    "metric": {
-    "total": 1492,
-    "other": 70
+    "total": 1662,
+    "other": 88
    }
   },
   {
