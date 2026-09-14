@@ -1,21 +1,21 @@
 {
- "generated_at": "2026-09-11T15:11:16+00:00",
- "status": "fail",
+ "generated_at": "2026-09-14T17:02:51+00:00",
+ "status": "warn",
  "summary": {
   "pass": 8,
-  "warn": 1,
-  "fail": 1
+  "warn": 2,
+  "fail": 0
  },
  "checks": [
   {
    "id": "recon_rev",
    "group": "跨來源對帳",
    "label": "月營收（證交所 vs 公開資訊觀測站）",
-   "status": "fail",
-   "detail": "980 家可對照，937 家不一致（95.61%）；例：1231 1,184,866 vs 1,248,708、2474 1,056,467 vs 1,003,130、1783 63,763 vs 68,526",
+   "status": "pass",
+   "detail": "980 家可對照，0 家不一致（0.00%）",
    "metric": {
     "compared": 980,
-    "mismatch": 937
+    "mismatch": 0
    }
   },
   {
@@ -44,7 +44,7 @@
    "group": "時效性",
    "label": "資料新鮮度（台股）",
    "status": "pass",
-   "detail": "股價 2026-09-11（0 天前）；月營收 11507",
+   "detail": "股價 2026-09-14（0 天前）；月營收 11508",
    "metric": {}
   },
   {
@@ -73,7 +73,7 @@
    "group": "時效性",
    "label": "資料新鮮度（美股）",
    "status": "pass",
-   "detail": "股價 2026-09-11（0 天前）",
+   "detail": "股價 2026-09-14（0 天前）",
    "metric": {}
   },
   {
@@ -92,9 +92,9 @@
    "group": "覆蓋率",
    "label": "個股產業歸類",
    "status": "pass",
-   "detail": "1,944 檔中有 118 檔歸在「其他」（6.1%）",
+   "detail": "1,933 檔中有 118 檔歸在「其他」（6.1%）",
    "metric": {
-    "total": 1944,
+    "total": 1933,
     "other": 118
    }
   },
@@ -102,10 +102,10 @@
    "id": "continuity",
    "group": "連續性",
    "label": "與前次結果比較",
-   "status": "pass",
-   "detail": "沒有異常跳動（門檻 40 分）",
+   "status": "warn",
+   "detail": "1 項分數大幅跳動：台股 金融保險業 medium 19→71",
    "metric": {
-    "jumps": 0
+    "jumps": 1
    }
   }
  ]
