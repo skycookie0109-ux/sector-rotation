@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-09-22T15:38:40+00:00",
+ "generated_at": "2026-09-23T15:33:52+00:00",
  "status": "warn",
  "summary": {
   "pass": 8,
@@ -23,9 +23,9 @@
    "group": "跨來源對帳",
    "label": "季報營收（證交所 vs 公開資訊觀測站）",
    "status": "pass",
-   "detail": "1,048 家可對照，0 家不一致（0.00%）",
+   "detail": "1,049 家可對照，0 家不一致（0.00%）",
    "metric": {
-    "compared": 1048,
+    "compared": 1049,
     "mismatch": 0
    }
   },
@@ -44,7 +44,7 @@
    "group": "時效性",
    "label": "資料新鮮度（台股）",
    "status": "pass",
-   "detail": "股價 2026-09-22（0 天前）；月營收 11508",
+   "detail": "股價 2026-09-23（0 天前）；月營收 11508",
    "metric": {}
   },
   {
@@ -73,7 +73,7 @@
    "group": "時效性",
    "label": "資料新鮮度（美股）",
    "status": "pass",
-   "detail": "股價 2026-09-22（0 天前）",
+   "detail": "股價 2026-09-23（0 天前）",
    "metric": {}
   },
   {
@@ -103,9 +103,9 @@
    "group": "連續性",
    "label": "與前次結果比較",
    "status": "warn",
-   "detail": "2 項分數大幅跳動：台股 電機機械 short 13→55；美股 健康護理 short 30→70",
+   "detail": "1 項分數大幅跳動：台股 水泥工業 short 36→87",
    "metric": {
-    "jumps": 2
+    "jumps": 1
    }
   }
  ]
