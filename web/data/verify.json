@@ -1,19 +1,22 @@
 {
- "generated_at": "2026-10-07T17:59:01+00:00",
- "status": "warn",
+ "generated_at": "2026-10-08T18:00:07+00:00",
+ "status": "fail",
  "summary": {
   "pass": 7,
-  "warn": 3,
-  "fail": 0
+  "warn": 2,
+  "fail": 1
  },
  "checks": [
   {
    "id": "recon_rev",
    "group": "跨來源對帳",
    "label": "月營收（證交所 vs 公開資訊觀測站）",
-   "status": "warn",
-   "detail": "只有 317 家能對照，樣本太少無法判斷",
-   "metric": {}
+   "status": "fail",
+   "detail": "793 家可對照，753 家不一致（94.96%）；例：2838 2,026,561 vs 1,389,499、9938 1,440,671 vs 1,490,654、8163 2,319,492 vs 2,162,368",
+   "metric": {
+    "compared": 793,
+    "mismatch": 753
+   }
   },
   {
    "id": "recon_q",
@@ -41,7 +44,7 @@
    "group": "時效性",
    "label": "資料新鮮度（台股）",
    "status": "pass",
-   "detail": "股價 2026-10-07（0 天前）；月營收 11508",
+   "detail": "股價 2026-10-08（0 天前）；月營收 11508",
    "metric": {}
   },
   {
@@ -70,7 +73,7 @@
    "group": "時效性",
    "label": "資料新鮮度（美股）",
    "status": "pass",
-   "detail": "股價 2026-10-07（0 天前）",
+   "detail": "股價 2026-10-08（0 天前）",
    "metric": {}
   },
   {
@@ -89,10 +92,10 @@
    "group": "覆蓋率",
    "label": "個股產業歸類",
    "status": "pass",
-   "detail": "1,377 檔中有 67 檔歸在「其他」（4.9%）",
+   "detail": "1,811 檔中有 100 檔歸在「其他」（5.5%）",
    "metric": {
-    "total": 1377,
-    "other": 67
+    "total": 1811,
+    "other": 100
    }
   },
   {
@@ -100,9 +103,9 @@
    "group": "連續性",
    "label": "與前次結果比較",
    "status": "warn",
-   "detail": "1 項分數大幅跳動：台股 其他電子業 short 52→6",
+   "detail": "2 項分數大幅跳動：台股 光電業 short 74→13；美股 能源 short 50→100",
    "metric": {
-    "jumps": 1
+    "jumps": 2
    }
   }
  ]
