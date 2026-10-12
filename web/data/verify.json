@@ -1,21 +1,21 @@
 {
- "generated_at": "2026-10-09T17:32:56+00:00",
- "status": "fail",
+ "generated_at": "2026-10-12T20:25:18+00:00",
+ "status": "warn",
  "summary": {
   "pass": 8,
-  "warn": 1,
-  "fail": 1
+  "warn": 2,
+  "fail": 0
  },
  "checks": [
   {
    "id": "recon_rev",
    "group": "跨來源對帳",
    "label": "月營收（證交所 vs 公開資訊觀測站）",
-   "status": "fail",
-   "detail": "796 家可對照，756 家不一致（94.97%）；例：6955 30,724 vs 30,020、9937 2,013,456 vs 2,069,561、3006 7,904,796 vs 7,460,769",
+   "status": "pass",
+   "detail": "809 家可對照，0 家不一致（0.00%）",
    "metric": {
-    "compared": 796,
-    "mismatch": 756
+    "compared": 809,
+    "mismatch": 0
    }
   },
   {
@@ -44,7 +44,7 @@
    "group": "時效性",
    "label": "資料新鮮度（台股）",
    "status": "pass",
-   "detail": "股價 2026-10-08（1 天前）；月營收 11508",
+   "detail": "股價 2026-10-12（0 天前）；月營收 11509",
    "metric": {}
   },
   {
@@ -73,7 +73,7 @@
    "group": "時效性",
    "label": "資料新鮮度（美股）",
    "status": "pass",
-   "detail": "股價 2026-10-09（0 天前）",
+   "detail": "股價 2026-10-12（0 天前）",
    "metric": {}
   },
   {
@@ -92,20 +92,20 @@
    "group": "覆蓋率",
    "label": "個股產業歸類",
    "status": "pass",
-   "detail": "1,818 檔中有 102 檔歸在「其他」（5.6%）",
+   "detail": "1,730 檔中有 113 檔歸在「其他」（6.5%）",
    "metric": {
-    "total": 1818,
-    "other": 102
+    "total": 1730,
+    "other": 113
    }
   },
   {
    "id": "continuity",
    "group": "連續性",
    "label": "與前次結果比較",
-   "status": "pass",
-   "detail": "沒有異常跳動（門檻 40 分）",
+   "status": "warn",
+   "detail": "2 項分數大幅跳動：台股 建材營造 short 13→58；台股 建材營造 medium 45→87",
    "metric": {
-    "jumps": 0
+    "jumps": 2
    }
   }
  ]
