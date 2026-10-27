@@ -1,9 +1,9 @@
 {
- "generated_at": "2026-10-26T17:35:20+00:00",
+ "generated_at": "2026-10-27T16:50:07+00:00",
  "status": "warn",
  "summary": {
-  "pass": 8,
-  "warn": 2,
+  "pass": 7,
+  "warn": 3,
   "fail": 0
  },
  "checks": [
@@ -44,7 +44,7 @@
    "group": "時效性",
    "label": "資料新鮮度（台股）",
    "status": "pass",
-   "detail": "股價 2026-10-22（4 天前）；月營收 11509",
+   "detail": "股價 2026-10-27（0 天前）；月營收 11509",
    "metric": {}
   },
   {
@@ -73,7 +73,7 @@
    "group": "時效性",
    "label": "資料新鮮度（美股）",
    "status": "pass",
-   "detail": "股價 2026-10-26（0 天前）",
+   "detail": "股價 2026-10-27（0 天前）",
    "metric": {}
   },
   {
@@ -102,10 +102,10 @@
    "id": "continuity",
    "group": "連續性",
    "label": "與前次結果比較",
-   "status": "pass",
-   "detail": "沒有異常跳動（門檻 40 分）",
+   "status": "warn",
+   "detail": "2 項分數大幅跳動：美股 健康護理 short 50→90；美股 非必需消費 short 30→70",
    "metric": {
-    "jumps": 0
+    "jumps": 2
    }
   }
  ]
