@@ -1,9 +1,9 @@
 {
- "generated_at": "2026-10-30T17:07:56+00:00",
+ "generated_at": "2026-11-02T21:00:11+00:00",
  "status": "warn",
  "summary": {
-  "pass": 7,
-  "warn": 3,
+  "pass": 6,
+  "warn": 4,
   "fail": 0
  },
  "checks": [
@@ -12,22 +12,16 @@
    "group": "跨來源對帳",
    "label": "月營收（證交所 vs 公開資訊觀測站）",
    "status": "warn",
-   "detail": "994 家可對照，2 家不一致（0.20%）；例：6443 96,562 vs 88,430、4426 118,949 vs 121,157",
-   "metric": {
-    "compared": 994,
-    "mismatch": 2
-   }
+   "detail": "只有 6 家能對照，樣本太少無法判斷",
+   "metric": {}
   },
   {
    "id": "recon_q",
    "group": "跨來源對帳",
    "label": "季報營收（證交所 vs 公開資訊觀測站）",
-   "status": "pass",
-   "detail": "1,052 家可對照，0 家不一致（0.00%）",
-   "metric": {
-    "compared": 1052,
-    "mismatch": 0
-   }
+   "status": "warn",
+   "detail": "只有 47 家能對照，樣本太少無法判斷",
+   "metric": {}
   },
   {
    "id": "invariant_台股",
@@ -44,7 +38,7 @@
    "group": "時效性",
    "label": "資料新鮮度（台股）",
    "status": "pass",
-   "detail": "股價 2026-10-30（0 天前）；月營收 11509",
+   "detail": "股價 2026-11-02（0 天前）；月營收 11509",
    "metric": {}
   },
   {
@@ -52,10 +46,10 @@
    "group": "覆蓋率",
    "label": "指標完整度（台股）",
    "status": "warn",
-   "detail": "中期平均覆蓋率 99%；1 項低於 60%：金融保險業 long 42%",
+   "detail": "中期平均覆蓋率 91%；2 項低於 60%：金融保險業 medium 59%；金融保險業 long 42%",
    "metric": {
-    "avg": 99.2,
-    "low": 1
+    "avg": 90.8,
+    "low": 2
    }
   },
   {
@@ -73,7 +67,7 @@
    "group": "時效性",
    "label": "資料新鮮度（美股）",
    "status": "pass",
-   "detail": "股價 2026-10-30（0 天前）",
+   "detail": "股價 2026-11-02（0 天前）",
    "metric": {}
   },
   {
@@ -92,10 +86,10 @@
    "group": "覆蓋率",
    "label": "個股產業歸類",
    "status": "pass",
-   "detail": "1,953 檔中有 118 檔歸在「其他」（6.0%）",
+   "detail": "1,094 檔中有 52 檔歸在「其他」（4.8%）",
    "metric": {
-    "total": 1953,
-    "other": 118
+    "total": 1094,
+    "other": 52
    }
   },
   {
@@ -103,9 +97,9 @@
    "group": "連續性",
    "label": "與前次結果比較",
    "status": "warn",
-   "detail": "1 項分數大幅跳動：台股 運動休閒 short 26→84",
+   "detail": "8 項分數大幅跳動：台股 油電燃氣業 short 74→16；台股 紡織纖維 short 48→90；台股 塑膠工業 short 87→36；台股 電機機械 short 23→100",
    "metric": {
-    "jumps": 1
+    "jumps": 8
    }
   }
  ]
