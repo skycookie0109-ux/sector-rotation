@@ -1,9 +1,9 @@
 {
- "generated_at": "2026-11-05T18:56:03+00:00",
+ "generated_at": "2026-11-06T18:19:10+00:00",
  "status": "warn",
  "summary": {
-  "pass": 6,
-  "warn": 4,
+  "pass": 7,
+  "warn": 3,
   "fail": 0
  },
  "checks": [
@@ -12,7 +12,7 @@
    "group": "跨來源對帳",
    "label": "月營收（證交所 vs 公開資訊觀測站）",
    "status": "warn",
-   "detail": "只有 143 家能對照，樣本太少無法判斷",
+   "detail": "只有 328 家能對照，樣本太少無法判斷",
    "metric": {}
   },
   {
@@ -20,7 +20,7 @@
    "group": "跨來源對帳",
    "label": "季報營收（證交所 vs 公開資訊觀測站）",
    "status": "warn",
-   "detail": "只有 108 家能對照，樣本太少無法判斷",
+   "detail": "只有 158 家能對照，樣本太少無法判斷",
    "metric": {}
   },
   {
@@ -38,7 +38,7 @@
    "group": "時效性",
    "label": "資料新鮮度（台股）",
    "status": "pass",
-   "detail": "股價 2026-11-05（0 天前）；月營收 11509",
+   "detail": "股價 2026-11-06（0 天前）；月營收 11509",
    "metric": {}
   },
   {
@@ -46,9 +46,9 @@
    "group": "覆蓋率",
    "label": "指標完整度（台股）",
    "status": "warn",
-   "detail": "中期平均覆蓋率 94%；2 項低於 60%：金融保險業 medium 59%；金融保險業 long 42%",
+   "detail": "中期平均覆蓋率 97%；2 項低於 60%：金融保險業 medium 59%；金融保險業 long 42%",
    "metric": {
-    "avg": 94.5,
+    "avg": 97.3,
     "low": 2
    }
   },
@@ -67,7 +67,7 @@
    "group": "時效性",
    "label": "資料新鮮度（美股）",
    "status": "pass",
-   "detail": "股價 2026-11-05（0 天前）",
+   "detail": "股價 2026-11-06（0 天前）",
    "metric": {}
   },
   {
@@ -86,20 +86,20 @@
    "group": "覆蓋率",
    "label": "個股產業歸類",
    "status": "pass",
-   "detail": "1,210 檔中有 56 檔歸在「其他」（4.6%）",
+   "detail": "1,370 檔中有 63 檔歸在「其他」（4.6%）",
    "metric": {
-    "total": 1210,
-    "other": 56
+    "total": 1370,
+    "other": 63
    }
   },
   {
    "id": "continuity",
    "group": "連續性",
    "label": "與前次結果比較",
-   "status": "warn",
-   "detail": "1 項分數大幅跳動：台股 玻璃陶瓷 short 71→16",
+   "status": "pass",
+   "detail": "沒有異常跳動（門檻 40 分）",
    "metric": {
-    "jumps": 1
+    "jumps": 0
    }
   }
  ]
