@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-12T19:05:32+00:00",
+ "generated_at": "2026-11-13T18:42:31+00:00",
  "status": "warn",
  "summary": {
   "pass": 8,
@@ -23,9 +23,9 @@
    "group": "跨來源對帳",
    "label": "季報營收（證交所 vs 公開資訊觀測站）",
    "status": "pass",
-   "detail": "531 家可對照，0 家不一致（0.00%）",
+   "detail": "752 家可對照，0 家不一致（0.00%）",
    "metric": {
-    "compared": 531,
+    "compared": 752,
     "mismatch": 0
    }
   },
@@ -44,7 +44,7 @@
    "group": "時效性",
    "label": "資料新鮮度（台股）",
    "status": "pass",
-   "detail": "股價 2026-11-12（0 天前）；月營收 11510",
+   "detail": "股價 2026-11-13（0 天前）；月營收 11510",
    "metric": {}
   },
   {
@@ -54,7 +54,7 @@
    "status": "warn",
    "detail": "中期平均覆蓋率 99%；1 項低於 60%：金融保險業 long 42%",
    "metric": {
-    "avg": 98.7,
+    "avg": 99.2,
     "low": 1
    }
   },
@@ -73,7 +73,7 @@
    "group": "時效性",
    "label": "資料新鮮度（美股）",
    "status": "pass",
-   "detail": "股價 2026-11-12（0 天前）",
+   "detail": "股價 2026-11-13（0 天前）",
    "metric": {}
   },
   {
@@ -103,7 +103,7 @@
    "group": "連續性",
    "label": "與前次結果比較",
    "status": "warn",
-   "detail": "2 項分數大幅跳動：台股 其他電子業 short 13→55；美股 工業 short 70→30",
+   "detail": "2 項分數大幅跳動：台股 數位雲端 short 19→81；台股 貿易百貨 short 68→16",
    "metric": {
     "jumps": 2
    }
